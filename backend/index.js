@@ -23,7 +23,13 @@ app.use('/pilotHazard',locomotivePilotHazardRouter);
 
 
 const PORT=8000;
-app.listen(PORT, () => {
-    console.log(`Server is running at ${PORT}`);
+app.listen(PORT, async () => {
+    console.log(`Server is running on port ${PORT}`);
+    
+    try {
+        await connection(); // Establish database connection
+        console.log('Database connected successfully.');
+    } catch (error) {
+        console.error('Error connecting to the database:', error);
+    }
 });
-connection();

@@ -77,32 +77,28 @@ function RegisterPage() {
     return;
   }
 
-    try {
-      const response = await axios.post('http://localhost:4000/api/locomotivePilot', formData);
-      console.log(response.data); // Handle success response
-      setError(''); // Clear any previous errors
-      setSuccess(true); // Show success message
-      setFormData({
-        locomotiveName: '',
-        locomotiveEmail: '',
-        locomotivePhoneNo: ''
-      }); // Clear the form inputs
+   
+  try {
+    const response = await axios.post('http://localhost:8000/locomotivePilot/addLocomotivePilot', formData);
+    console.log(response.data);
+    setError(''); // Clear previous errors
+    setSuccess(true); // Show success message
+    setFormData({ locomotiveName: '', locomotiveEmail: '', locomotivePhoneNo: '' }); // Reset form
 
-       // Redirect to login page after 2 seconds
-       setTimeout(() => {
-        navigate('/');
-      }, 2000);
-    } catch (error) {
-      console.error('Registration failed:', error); // Log the error
-      if (error.response && error.response.data && error.response.data.error) {
-        setError(error.response.data.error); // Set error message from server response
-      } else {
-        setError('Registration failed. Please try again.'); // Set a generic error message
-      }
-      setShowErrorModal(true); // Show error modal
-      
+    // Redirect after success
+    setTimeout(() => {
+      navigate('/');
+    }, 2000);
+  } catch (error) {
+    console.error('Registration failed:', error);
+    if (error.response && error.response.data) {
+      setError(error.response.data.error || 'Registration failed. Please try again.'); // Informative error
+    } else {
+      setError('Registration failed. Please try again.'); // Generic error
     }
-  };
+    setShowErrorModal(true); // Show error modal
+  }
+};
 
   const handleCloseErrorModal = () => setShowErrorModal(false);
 
