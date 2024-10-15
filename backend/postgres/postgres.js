@@ -20,27 +20,35 @@ let LocomotivePilotHazardModel = null;
 // Establish the connection and sync the model
 const connection = async () => {
     try {
+        // Authenticate the database connection
         await sequelize.authenticate();
         console.log('Connection has been established successfully.');
 
-        // Initialize the  model
+        // Initialize the models
         LocationModel = await createLocationModel(sequelize);
+        console.log('LocationModel initialized.');
+        
         LocomotivePilotModel = await createLocomotivePilotModel(sequelize);
+        console.log('LocomotivePilotModel initialized.');
+
         AdminModel = await createAdminModel(sequelize);
+        console.log('AdminModel initialized.');
+
         HazardModel = await createHazardModel(sequelize);
-        LocomotivePilotHazardModel = await createLocomotivePilotHazardModel (sequelize);
+        console.log('HazardModel initialized.');
 
+        LocomotivePilotHazardModel = await createLocomotivePilotHazardModel(sequelize);
+        console.log('LocomotivePilotHazardModel initialized.');
 
-        await sequelize.sync();
+        // Sync all models with the database
+        await sequelize.sync({ force: false }); // You can change to `{ force: true }` if you want to drop and recreate tables
         console.log('Database synced successfully.');
-
-        await sequelize.sync();
-        console.log('Database synced successfully.');
-    }
-    catch (error) {
+        
+    } catch (error) {
         console.error('Unable to connect to the database:', error);
     }
 }
+
 export {
     connection,
     LocationModel,
