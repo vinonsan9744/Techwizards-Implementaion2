@@ -63,7 +63,7 @@ function UpdateLPDetails() {
   
   const handleSubmit = async () => {
     try {
-      const response = await axios.patch(`http://localhost:4000/api/locomotivePilot/locomotivePilotID/${selectedPilotId}`, {
+      const response = await axios.patch(`http://localhost:8000/locomotivePilot/${selectedPilotId}`, {
         locomotiveName: lpName,
         locomotivePhoneNo: phoneNumber,
         locomotiveEmail: email
