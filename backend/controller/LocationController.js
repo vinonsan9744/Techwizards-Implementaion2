@@ -66,3 +66,22 @@ export const getFirstAndLastLocation = async (req, res) => {
         return res.status(500).json({ "error": "Internal server error" });
     }
 };
+// Get location by locationId
+export const getLocationById = async (req, res) => {
+    const { locationId } = req.params;
+
+    try {
+        const location = await LocationModel.findOne({ locationId });
+
+        if (!location) {
+            return res.status(404).json({ error: 'Location not found' });
+        }
+
+        res.status(200).json(location);
+    } catch (e) {
+        res.status(400).json({ error: e.message });
+    }
+};
+
+
+

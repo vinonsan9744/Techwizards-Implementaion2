@@ -34,7 +34,7 @@ function UpdateHazard() {
   useEffect(() => {
     const fetchLocationTypes = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/location');
+        const response = await axios.get('http://localhost:8000/location/getAll');
         const uniqueTypes = [...new Set(response.data.map(location => location.locationType))];
         setLocationTypes(uniqueTypes);
       } catch (error) {
@@ -50,7 +50,7 @@ function UpdateHazard() {
     const fetchLocationNames = async () => {
       try {
         if (selectedLocationType) {
-          const response = await axios.get(`http://localhost:4000/api/location?locationType=${selectedLocationType}`);
+          const response = await axios.get(`http://localhost:8000/location/getAll?locationType=${selectedLocationType}`);
           const filteredNames = response.data
             .filter(location => location.locationType === selectedLocationType)
             .map(location => location.locationName);
@@ -67,7 +67,7 @@ function UpdateHazard() {
   useEffect(() => {
     setFormData((prevFormData) => ({
       ...prevFormData,
-      hazardType: selectedHazard,
+      HazardType: selectedHazard,
     }));
   }, [selectedHazard]);
 
@@ -100,14 +100,14 @@ function UpdateHazard() {
   // };
 
   // Function to handle selection of hazard type
-  const handleHazardSelect = (hazardType) => {
-    setSelectedHazard(hazardType); // Update selectedHazard state
+  const handleHazardSelect = (HazardType) => {
+    setSelectedHazard(HazardType); // Update selectedHazard state
   };
 
   // reporting hazard function 
   const [formData, setFormData] = useState({
-    time: '',
-    hazardType: '',
+    Date: '',
+    HazardType: '',
     locationName: '',
     description: '',
     locomotivePilotID: ''
@@ -132,9 +132,9 @@ function UpdateHazard() {
     if (
       formData.locationName.trim() === "" &&
       formData.locomotivePilotID.trim() === "" &&
-      formData.hazardType.trim() === "" &&
+      formData.HazardType.trim() === "" &&
       formData.description.trim() === "" &&
-      formData.time.trim() === "" &&
+      formData.Date.trim() === "" &&
       selectedLocationType.trim() === ""
     ) {
       setError("All fields are empty. Please fill in the all fields.");
@@ -151,11 +151,11 @@ function UpdateHazard() {
       setError("Location Name Field Is Empty.");
       setShowErrorModal(true);
       return;
-    } else if (formData.time.trim() === "") {
+    } else if (formData.Date.trim() === "") {
       setError("Date & Time Field Is Empty.");
       setShowErrorModal(true);
       return;
-    } else if (formData.hazardType.trim() === "") {
+    } else if (formData.HazardType.trim() === "") {
       setError("Hazard Type Field Is Empty.");
       setShowErrorModal(true);
       return;
@@ -168,13 +168,13 @@ function UpdateHazard() {
 
 
     try {
-      const response = await axios.post('http://localhost:4000/api/locomotivePilotHazard', formData);
+      const response = await axios.post('http://localhost:8000/pilotHazard/addHazard', formData);
       console.log(response.data); // Handle success response
       setError(''); // Clear any previous errors
       setSuccess(true); // Show success message
       setFormData({
-        time: '',
-        hazardType: '',
+        Date: '',
+        HazardType: '',
         locationName: '',
         description: '',
         locomotivePilotID: ''
@@ -232,12 +232,12 @@ function UpdateHazard() {
                           setShowCalendar(false);
                           setFormData((prevFormData) => ({
                             ...prevFormData,
-                            time: date.format('YYYY-MM-DD HH:mm'),
+                            Date: date.format('YYYY-MM-DD HH:mm'),
                           }));
                         }}
                         input={false}
                         open={true}
-                        value={formData.time}
+                        value={formData.Date}
                       />
                     </Dropdown.Menu>
                   </Dropdown>
@@ -360,7 +360,7 @@ function UpdateHazard() {
                     onChange={handleChange}
                     className="hazard-RegisterPage-input-text-box"
                   />
-                  <label htmlFor="lpid">Locomotive Pilot Id</label>
+                  <label htmlFor="lpid">LocomotivePilotId</label>
                 </Form.Floating>
 
                 <Button type="submit" variant="outline-dark" className='update-hazard-button' >Submit</Button>{' '}
