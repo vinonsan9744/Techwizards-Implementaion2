@@ -32,7 +32,7 @@ function UpdateLPDetails() {
   useEffect(() => {
     const fetchPilotIds = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/locomotivePilot');
+        const response = await axios.get('http://localhost:8000/locomotivePilot/getAll');
         setPilotIds(response.data.map(pilot => pilot.locomotivePilotID));
       } catch (error) {
         console.error('Error fetching pilot IDs:', error);
@@ -46,7 +46,7 @@ function UpdateLPDetails() {
   const handlePilotIdSelect = async (id) => {
     setSelectedPilotId(id);
     try {
-      const response = await axios.get(`http://localhost:4000/api/locomotivePilot/locomotivePilotID/${id}`);
+      const response = await axios.get(`http://localhost:8000/locomotivePilot/getByLPid/${id}`);
       const pilot = response.data;
       setLPName(pilot.locomotiveName);
       setPhoneNumber(pilot.locomotivePhoneNo);

@@ -39,7 +39,7 @@ export const createLocationModel = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false,
             validate: {
-                len: [9, 9]
+                len: [9, 12]
             }
         }, 
     });

@@ -30,27 +30,11 @@ function UpdateHazard() {
   // const [locationHazards, setLocationHazards] = useState([]);
   const [selectedHazard, setSelectedHazard] = useState('');
  
-  // Fetch location types on component mount
-  useEffect(() => {
-    const fetchLocationTypes = async () => {
-      try {
-        const response = await axios.get('http://localhost:4000/api/location');
-        const uniqueTypes = [...new Set(response.data.map(location => location.locationType))];
-        setLocationTypes(uniqueTypes);
-      } catch (error) {
-        console.error('Error fetching location types:', error);
-      }
-    };
-
-    fetchLocationTypes();
-  }, []);
-
-  // Fetch location names based on selected location type
   useEffect(() => {
     const fetchLocationNames = async () => {
       try {
         if (selectedLocationType) {
-          const response = await axios.get(`http://localhost:4000/api/location?locationType=${selectedLocationType}`);
+          const response = await axios.get('http://localhost:8000/location/getAll');
           const filteredNames = response.data
             .filter(location => location.locationType === selectedLocationType)
             .map(location => location.locationName);
@@ -60,8 +44,33 @@ function UpdateHazard() {
         console.error('Error fetching location names:', error);
       }
     };
+    
     fetchLocationNames();
   }, [selectedLocationType]);
+  
+  // Fetch location names based on selected location type
+useEffect(() => {
+  const fetchLocationNames = async () => {
+    try {
+      if (selectedLocationType) {
+        const response = await axios.get('http://localhost:8000/location/getAll'); // Fetch all locations
+
+        // Filter locations based on the selected location type
+        const filteredNames = response.data
+          .filter(location => location.locationType === selectedLocationType)
+          .map(location => location.locationName);
+
+        // Update the state with filtered location names
+        setLocationNames(filteredNames);
+      }
+    } catch (error) {
+      console.error('Error fetching location names:', error);
+    }
+  };
+  
+  fetchLocationNames();
+}, [selectedLocationType]); // Re-fetch when selectedLocationType changes
+
 
 
   useEffect(() => {
