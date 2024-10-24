@@ -4,11 +4,10 @@ export const createLocomotivePilotHazardModel = (sequelize) => {
   const LocomotivePilotHazard = sequelize.define('LocomotivePilotHazard', {
     HazardID: {
       type: DataTypes.STRING(6), // Ensure it's a string with 6 characters (e.g., ELE001, BUL001)
-      allowNull: false,
       primaryKey: true // Set as primary key
     },
     locomotivePilotID: {
-      type: DataTypes.STRING(6), // Assuming it's an integer, adjust type if needed
+      type: DataTypes.STRING(6), // Assuming it's a string, adjust type if needed
       allowNull: false,
     },
     locationName: {
@@ -33,20 +32,17 @@ export const createLocomotivePilotHazardModel = (sequelize) => {
         // Capitalize the first three letters of HazardType
         const hazardPrefix = hazard.HazardType.substring(0, 3).toUpperCase();
 
-        // Query database to get the highest HazardID with the same prefix
-        const lastHazard = await LocomotivePilotHazard.findOne({
-          where: {
-            HazardID: {
-              [sequelize.Op.like]: `${hazardPrefix}%`
-            }
-          },
-          order: [['HazardID', 'DESC']] // Order by HazardID descending
+        // Fetch all hazards with the same HazardType
+        const hazards = await LocomotivePilotHazard.findAll({
+          where: { HazardType: hazard.HazardType },
+          order: [['HazardID', 'DESC']]
         });
 
-        // If there’s no existing record with that prefix, start from 001
+        // If there’s no existing record with that type, start from 001
         let newIdNumber = "001";
-        if (lastHazard && lastHazard.HazardID) {
-          const lastIdNumber = parseInt(lastHazard.HazardID.slice(3), 10);
+        if (hazards.length > 0) {
+          const lastHazard = hazards[0].HazardID;
+          const lastIdNumber = parseInt(lastHazard.slice(3), 10);
           newIdNumber = String(lastIdNumber + 1).padStart(3, '0');
         }
 

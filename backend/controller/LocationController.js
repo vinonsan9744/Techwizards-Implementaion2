@@ -66,22 +66,22 @@ export const getFirstAndLastLocation = async (req, res) => {
         return res.status(500).json({ "error": "Internal server error" });
     }
 };
+// Get location by locationId
+export const getLocationById = async (req, res) => {
+    const { locationId } = req.params;
 
-// Function to get distinct location types
-export const getLocationTypes = async (req, res) => {
     try {
-      // Fetch distinct location types
-      const locationTypes = await Location.findAll({
-        attributes: [
-          [Sequelize.fn('DISTINCT', Sequelize.col('locationType')), 'locationType']  // Ensure distinct values
-        ],
-        order: [['locationType', 'ASC']]  // Optionally order the types alphabetically
-      });
-  
-      // Send the result as a JSON response
-      res.status(200).json(locationTypes);
-    } catch (error) {
-      console.error('Error fetching location types:', error);
-      res.status(500).json({ error: 'Error fetching location types' });
+        const location = await LocationModel.findOne({ locationId });
+
+        if (!location) {
+            return res.status(404).json({ error: 'Location not found' });
+        }
+
+        res.status(200).json(location);
+    } catch (e) {
+        res.status(400).json({ error: e.message });
     }
-  };
+};
+
+
+

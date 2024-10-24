@@ -30,11 +30,27 @@ function UpdateHazard() {
   // const [locationHazards, setLocationHazards] = useState([]);
   const [selectedHazard, setSelectedHazard] = useState('');
  
+  // Fetch location types on component mount
+  useEffect(() => {
+    const fetchLocationTypes = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/location/getAll');
+        const uniqueTypes = [...new Set(response.data.map(location => location.locationType))];
+        setLocationTypes(uniqueTypes);
+      } catch (error) {
+        console.error('Error fetching location types:', error);
+      }
+    };
+
+    fetchLocationTypes();
+  }, []);
+
+  // Fetch location names based on selected location type
   useEffect(() => {
     const fetchLocationNames = async () => {
       try {
         if (selectedLocationType) {
-          const response = await axios.get('http://localhost:8000/location/getAll');
+          const response = await axios.get(`http://localhost:8000/location/getAll?locationType=${selectedLocationType}`);
           const filteredNames = response.data
             .filter(location => location.locationType === selectedLocationType)
             .map(location => location.locationName);
@@ -44,39 +60,14 @@ function UpdateHazard() {
         console.error('Error fetching location names:', error);
       }
     };
-    
     fetchLocationNames();
   }, [selectedLocationType]);
-  
-  // Fetch location names based on selected location type
-useEffect(() => {
-  const fetchLocationNames = async () => {
-    try {
-      if (selectedLocationType) {
-        const response = await axios.get('http://localhost:8000/location/getAll'); // Fetch all locations
-
-        // Filter locations based on the selected location type
-        const filteredNames = response.data
-          .filter(location => location.locationType === selectedLocationType)
-          .map(location => location.locationName);
-
-        // Update the state with filtered location names
-        setLocationNames(filteredNames);
-      }
-    } catch (error) {
-      console.error('Error fetching location names:', error);
-    }
-  };
-  
-  fetchLocationNames();
-}, [selectedLocationType]); // Re-fetch when selectedLocationType changes
-
 
 
   useEffect(() => {
     setFormData((prevFormData) => ({
       ...prevFormData,
-      hazardType: selectedHazard,
+      HazardType: selectedHazard,
     }));
   }, [selectedHazard]);
 
@@ -109,14 +100,14 @@ useEffect(() => {
   // };
 
   // Function to handle selection of hazard type
-  const handleHazardSelect = (hazardType) => {
-    setSelectedHazard(hazardType); // Update selectedHazard state
+  const handleHazardSelect = (HazardType) => {
+    setSelectedHazard(HazardType); // Update selectedHazard state
   };
 
   // reporting hazard function 
   const [formData, setFormData] = useState({
-    time: '',
-    hazardType: '',
+    Date: '',
+    HazardType: '',
     locationName: '',
     description: '',
     locomotivePilotID: ''
@@ -141,9 +132,9 @@ useEffect(() => {
     if (
       formData.locationName.trim() === "" &&
       formData.locomotivePilotID.trim() === "" &&
-      formData.hazardType.trim() === "" &&
+      formData.HazardType.trim() === "" &&
       formData.description.trim() === "" &&
-      formData.time.trim() === "" &&
+      formData.Date.trim() === "" &&
       selectedLocationType.trim() === ""
     ) {
       setError("All fields are empty. Please fill in the all fields.");
@@ -160,11 +151,11 @@ useEffect(() => {
       setError("Location Name Field Is Empty.");
       setShowErrorModal(true);
       return;
-    } else if (formData.time.trim() === "") {
+    } else if (formData.Date.trim() === "") {
       setError("Date & Time Field Is Empty.");
       setShowErrorModal(true);
       return;
-    } else if (formData.hazardType.trim() === "") {
+    } else if (formData.HazardType.trim() === "") {
       setError("Hazard Type Field Is Empty.");
       setShowErrorModal(true);
       return;
@@ -177,13 +168,13 @@ useEffect(() => {
 
 
     try {
-      const response = await axios.post('http://localhost:4000/api/locomotivePilotHazard', formData);
+      const response = await axios.post('http://localhost:8000/pilotHazard/addHazard', formData);
       console.log(response.data); // Handle success response
       setError(''); // Clear any previous errors
       setSuccess(true); // Show success message
       setFormData({
-        time: '',
-        hazardType: '',
+        Date: '',
+        HazardType: '',
         locationName: '',
         description: '',
         locomotivePilotID: ''
@@ -241,12 +232,12 @@ useEffect(() => {
                           setShowCalendar(false);
                           setFormData((prevFormData) => ({
                             ...prevFormData,
-                            time: date.format('YYYY-MM-DD HH:mm'),
+                            Date: date.format('YYYY-MM-DD HH:mm'),
                           }));
                         }}
                         input={false}
                         open={true}
-                        value={formData.time}
+                        value={formData.Date}
                       />
                     </Dropdown.Menu>
                   </Dropdown>
@@ -369,7 +360,7 @@ useEffect(() => {
                     onChange={handleChange}
                     className="hazard-RegisterPage-input-text-box"
                   />
-                  <label htmlFor="lpid">Locomotive Pilot Id</label>
+                  <label htmlFor="lpid">LocomotivePilotId</label>
                 </Form.Floating>
 
                 <Button type="submit" variant="outline-dark" className='update-hazard-button' >Submit</Button>{' '}

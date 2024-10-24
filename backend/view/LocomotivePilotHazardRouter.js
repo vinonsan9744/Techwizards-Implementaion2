@@ -1,5 +1,5 @@
 import express from "express";
-import { addHazard } from "../controller/HazardController.js"; // Create a new hazard controller
+import { addHazard } from "../controller/LocomotivePilotHazardController.js"; // Create a new hazard controller
 
 const router = express.Router();
 
