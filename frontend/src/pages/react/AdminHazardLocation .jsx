@@ -21,8 +21,8 @@ function AdminHazardLocation() {
   const [hazards, setHazards] = useState([]);
 
   const [formData, setFormData] = useState({
-    hazardType: 'Bull', // Default selection for hazard type
-    locationName: '',
+    HazardType: 'Bull', // Default selection for hazard type
+    LocationName: '',
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -31,7 +31,7 @@ function AdminHazardLocation() {
   useEffect(() => {
     const fetchLocationTypes = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/location');
+        const response = await axios.get('http://localhost:8000/location/getAll');
         const uniqueTypes = [...new Set(response.data.map(location => location.locationType))];
         setLocationTypes(uniqueTypes);
       } catch (error) {
@@ -45,7 +45,7 @@ function AdminHazardLocation() {
     const fetchLocationNames = async () => {
       try {
         if (selectedLocationType) {
-          const response = await axios.get(`http://localhost:4000/api/location?locationType=${selectedLocationType}`);
+          const response = await axios.get(`http://localhost:8000/location/getAll?locationType=${selectedLocationType}`);
           const filteredNames = response.data
             .filter(location => location.locationType === selectedLocationType)
             .map(location => location.locationName);
@@ -68,13 +68,13 @@ function AdminHazardLocation() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:4000/api/hazard', formData);
+      const response = await axios.post('http://localhost:8000/hazard/addHazard', formData);
       console.log(response.data); // Log response data to verify if the data is saved correctly
       setError('');
       setSuccess(true);
       setFormData({
-        hazardType: 'Elephant', // Reset to default selection
-        locationName: '',
+        HazardType: 'Elephant', // Reset to default selection
+        LocationName: '',
       });
     } catch (error) {
       console.error('Hazard Reporting failed:', error);
@@ -90,7 +90,7 @@ function AdminHazardLocation() {
     setSelectedMethod(value);
     setFormData({
       ...formData,
-      hazardType: value
+      HazardType: value
     });
   };
 
@@ -99,7 +99,7 @@ function AdminHazardLocation() {
     setSelectedLocationName(''); // Reset selected location name when location type changes
     setFormData({
       ...formData,
-      locationName: ''
+      LocationName: ''
     });
     setLocationNames([]); // Clear previous location names
   };
@@ -108,7 +108,7 @@ function AdminHazardLocation() {
     const fetchHazards = async () => {
       try {
         if (selectedLocationName) {
-          const response = await axios.get(`http://localhost:4000/api/hazard/locationName/${selectedLocationName}`);
+          const response = await axios.get(`http://localhost:8000/hazard/locationName/${selectedLocationName}`);
           setHazards(response.data);
         }
       } catch (error) {
@@ -122,7 +122,7 @@ function AdminHazardLocation() {
     setSelectedLocationName(name);
     setFormData({
       ...formData,
-      locationName: name
+      LocationName: name
     });
   };
 
@@ -245,7 +245,7 @@ function AdminHazardLocation() {
                 </div>
                 {hazards.map((hazard, index) => (
                   <div key={index} className="right-admin-hazard-location-possible-hazards-content-box container-flex">
-                    <h2 className="right-admin-hazard-location-possible-hazards-content">{hazard.hazardType}</h2>
+                    <h2 className="right-admin-hazard-location-possible-hazards-content">{hazard.HazardType}</h2>
                   </div>
                 ))}
               </div>

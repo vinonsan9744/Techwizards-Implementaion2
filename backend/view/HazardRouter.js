@@ -4,5 +4,5 @@ const router = express.Router();
 
 router.get("/getHazard", getAllHazards); // Route for getting all hazards
 router.post("/addHazard", addHazard); // Route for adding a new hazard
-router.get("/hazardById/:locationName", getHazardsByLocation);
+router.get("/locationName/:locationName", getHazardsByLocation);
 export default router;

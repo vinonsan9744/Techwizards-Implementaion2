@@ -38,7 +38,6 @@ export const createHazardModel = (sequelize) => {
         },
         Description: {
             type: DataTypes.TEXT,
-            allowNull: true,
         },
     }, {
         hooks: {

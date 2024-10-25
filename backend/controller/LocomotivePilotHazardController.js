@@ -17,3 +17,17 @@ export const addHazard = async (req, res) => {
       return res.status(500).json({ error: error.message || "Internal server error" });
   }
 };
+
+
+// Get all hazards
+export const getAllHazards = async (req, res) => {
+    try {
+      const hazards = await locomotivePilotHazardModel.findAll(); // Fetch all hazards
+      return res.status(200).json({ success: true, hazards }); // Return all hazards
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: error.message || "Internal server error" });
+    }
+  };
+  
+  

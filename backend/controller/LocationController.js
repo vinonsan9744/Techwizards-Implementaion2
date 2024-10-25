@@ -85,3 +85,19 @@ export const getLocationById = async (req, res) => {
 
 
 
+// Get tasks by locationName
+export const getTasksByLocationName = async (req, res) => {
+    const { locationName } = req.params;
+
+    try {
+        const location = await LocationModel.findOne({ locationName });
+
+        if (!location) {
+            return res.status(404).json({ error: 'Location not found' });
+        }
+
+        res.status(200).json(location);
+    } catch (e) {
+        res.status(400).json({ error: e.message });
+    }
+};

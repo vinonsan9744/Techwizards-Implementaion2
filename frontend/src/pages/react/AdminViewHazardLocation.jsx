@@ -24,7 +24,7 @@ function AdminViewHazardLocation() {
   useEffect(() => {
     const fetchLocationTypes = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/location');
+        const response = await axios.get('http://localhost:8000/location/getAll');
         const uniqueTypes = [...new Set(response.data.map(location => location.locationType))];
         setLocationTypes(uniqueTypes);
       } catch (error) {
@@ -40,7 +40,7 @@ function AdminViewHazardLocation() {
     const fetchLocationNames = async () => {
       try {
         if (selectedLocationType) {
-          const response = await axios.get(`http://localhost:4000/api/location?locationType=${selectedLocationType}`);
+          const response = await axios.get(`http://localhost:8000/location/getAll?locationType=${selectedLocationType}`);
           // Filter location names based on selected location type
           const filteredNames = response.data
             .filter(location => location.locationType === selectedLocationType)
@@ -60,7 +60,7 @@ function AdminViewHazardLocation() {
     const fetchHazards = async () => {
       try {
         if (selectedLocationName) {
-          const response = await axios.get(`http://localhost:4000/api/hazard/locationName/${selectedLocationName}`);
+          const response = await axios.get(`http://localhost:8000/hazard/locationName/${selectedLocationName}`);
           setHazards(response.data);
         }
       } catch (error) {
@@ -169,7 +169,7 @@ function AdminViewHazardLocation() {
 
                 {hazards.map((hazard, index) => (
                   <div key={index} className="hazard-location-possible-content-box1 container-flex">
-                    <h2 className="hazard-location-possible-content-heading">{hazard.hazardType}</h2>
+                    <h2 className="hazard-location-possible-content-heading">{hazard.HazardType}</h2>
                   </div>
                 ))}
               </div>
