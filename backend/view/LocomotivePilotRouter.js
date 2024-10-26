@@ -4,7 +4,12 @@ import {
     addLocomotivePilot,
     getLocomotivePilotById,
     updateLocomotivePilot,
-    locomotivePilotLogin
+    locomotivePilotLogin,
+    verifyUsername,
+    verifyEmail,
+    sendOTP, 
+    verifyOtp,
+    resetPassword
 }
     from "../controller/LocomotivePilotController.js";
 
@@ -14,5 +19,10 @@ router.post("/addlocomotivePilot", addLocomotivePilot);
 router.get('/getByLPid/:id', getLocomotivePilotById);
 router.patch('/:id', updateLocomotivePilot);
 router.post('/login', locomotivePilotLogin);
+router.post('/verifyUsername', verifyUsername);
+router.post('/verifyEmail', verifyEmail);
+router.post('/sendOTP', sendOTP); 
+router.post('/verifyOTP', verifyOtp);
+router.post('/reset-password', resetPassword);
 
 export default router;

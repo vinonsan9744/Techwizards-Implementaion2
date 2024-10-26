@@ -52,5 +52,13 @@ export const createLocomotivePilotHazardModel = (sequelize) => {
     }
   });
 
+   // Association with LocomotivePilot model
+   LocomotivePilotHazard.belongsTo(LocomotivePilot, {
+    foreignKey: 'locomotivePilotID',
+    targetKey: 'locomotivePilotID'
+});
+  
+
   return LocomotivePilotHazard;
 };
+

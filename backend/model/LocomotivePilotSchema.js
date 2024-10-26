@@ -1,10 +1,13 @@
 import { DataTypes } from 'sequelize';
+import bcrypt from 'bcrypt';
 
 // Function to generate a unique locomotivePilotID
 const generateLocomotivePilotId = async (LocomotivePilot) => {
     const count = await LocomotivePilot.count();
     return `LID${String(count + 1).padStart(3, '0')}`; // Generates IDs like LID001, LID002, etc.
 };
+
+
 
 export const createLocomotivePilotModel = (sequelize) => {
     const LocomotivePilot = sequelize.define('LocomotivePilot', {
@@ -14,8 +17,8 @@ export const createLocomotivePilotModel = (sequelize) => {
         },
         locomotiveName: {
             type: DataTypes.STRING,
-            allowNull: false
-        },  
+            allowNull: false,
+        },
         locomotiveEmail: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -32,27 +35,40 @@ export const createLocomotivePilotModel = (sequelize) => {
         },
         password: {
             type: DataTypes.STRING,
+            allowNull: false,  // Ensure a password is provided
             validate: {
-                len: [8, 8] // Password length validation
+                len: [8, 100] // Allowing up to 100 characters for a hashed password
             }
         },
+        otp: {
+            type: DataTypes.STRING(6), // 6-digit OTP
+            allowNull: true,
+        },
+        otpExpiry: {
+            type: DataTypes.DATE, // OTP expiry time
+            allowNull: true,
+        }
     });
 
-    // Pre-save hook to automatically generate locomotivePilotID and password
+    // Pre-save hook to automatically generate locomotivePilotID and hash the password
     LocomotivePilot.beforeCreate(async (pilot) => {
         pilot.locomotivePilotID = await generateLocomotivePilotId(LocomotivePilot);
-        pilot.password = generateRandomPassword(); // Call the function to generate a random password
+
+        // Generate a random password if not provided, then hash it
+        if (!pilot.password) {
+            pilot.password = generateRandomPassword();
+        }
+
+        // Log the password for debugging
+        console.log('Generated Password before hashing:', pilot.password);
+
+        // Hash the password before saving
+        const saltRounds = 10;
+        pilot.password = await bcrypt.hash(pilot.password, saltRounds);
+        
+        // Log the hashed password for debugging
+        console.log('Hashed Password:', pilot.password);
     });
 
     return LocomotivePilot;
-};
-
-// Function to generate a random 8-character password
-const generateRandomPassword = () => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
-    let password = '';
-    for (let i = 0; i < 8; i++) {
-        password += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    return password;
 };
