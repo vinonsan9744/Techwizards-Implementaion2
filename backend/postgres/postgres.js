@@ -3,7 +3,7 @@ import { createLocationModel } from "../model/LocationSchema.js";
 import { createLocomotivePilotModel } from "../model/LocomotivePilotSchema.js";
 import {createAdminModel} from "../model/AdminSchema.js";
 import { createHazardModel } from "../model/HazardSchema.js";
-import {createLocomotivePilotHazardModel} from "../model/LocomotivePilotHazardSchema.js"
+import {createLocomotivePilotHazardModel} from "../model/LocomotivePilotHazardSchema.js";
 
 // Setup the connection to PostgreSQL database
 const sequelize = new Sequelize('TechWizard', 'postgres', 'root', {
