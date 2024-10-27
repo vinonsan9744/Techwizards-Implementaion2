@@ -306,3 +306,34 @@ export const resetPassword = async (req, res) => {
     }
 };
 
+export const updatePasswordByEmail = async (req, res) => {
+    const { locomotiveEmail, password } = req.body; // Expecting email and password in the request body
+
+    try {
+        // Log the incoming request for debugging
+        console.log('Update Password Request:', req.body);
+        
+        // Find the locomotive pilot by email
+        const pilot = await LocomotivePilotModel.findOne({ where: { locomotiveEmail } });
+
+        if (!pilot) {
+            return res.status(404).json({ message: "Locomotive pilot not found" });
+        }
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10); // Change newPassword to password
+
+        // Update the password in the database directly in the existing 'password' field
+        await LocomotivePilotModel.update(
+            { password: hashedPassword }, // Save the hashed password to the 'password' field
+            { where: { locomotiveEmail } } // Find by email
+        );
+
+        console.log('Password updated successfully for:', locomotiveEmail);
+        return res.status(200).json({ message: "Password updated successfully" });
+    } catch (error) {
+        console.error("Error updating password:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
