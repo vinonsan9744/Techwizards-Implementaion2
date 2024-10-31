@@ -10,7 +10,7 @@ import {
     sendOTP, 
     verifyOtp,
     resetPassword,
-    updatePasswordByEmail
+    updatePasswordById
 }
     from "../controller/LocomotivePilotController.js";
 
@@ -25,6 +25,7 @@ router.post('/verifyEmail', verifyEmail);
 router.post('/sendOTP', sendOTP); 
 router.post('/verifyOTP', verifyOtp);
 router.post('/reset-password', resetPassword);
-router.patch('/locomotivePilot/updatePassword', updatePasswordByEmail);
+router.patch('/updatePassword/:id', updatePasswordById);
+
 
 export default router;
