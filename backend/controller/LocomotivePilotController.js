@@ -268,7 +268,11 @@ export const verifyEmail = async (req, res) => {
         });
 
         if (pilot) {
-            return res.status(200).json({ message: "Email verified successfully" });
+            // Return the ID along with the success message
+            return res.status(200).json({
+                message: "Email verified successfully",
+                locomotivePilotID: pilot.locomotivePilotID // Include the pilot's ID
+            });
         }
 
         return res.status(404).json({ message: "Email not found or not associated with this username" });
@@ -277,6 +281,7 @@ export const verifyEmail = async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 };
+
 
 // Reset password function without needing the old password
 export const resetPassword = async (req, res) => {
@@ -306,34 +311,40 @@ export const resetPassword = async (req, res) => {
     }
 };
 
-export const updatePasswordByEmail = async (req, res) => {
-    const { locomotiveEmail, password } = req.body; // Expecting email and password in the request body
+// Update password using user ID with PATCH
+export const updatePasswordById = async (req, res) => {
+    const { id } = req.params;  // Get the ID from URL parameters
+    const { password } = req.body; // Get the new password from the request body
+
+    // Validate the incoming password
+    if (!password) {
+        return res.status(400).json({ message: "Password is required" });
+    }
 
     try {
-        // Log the incoming request for debugging
-        console.log('Update Password Request:', req.body);
-        
-        // Find the locomotive pilot by email
-        const pilot = await LocomotivePilotModel.findOne({ where: { locomotiveEmail } });
+        console.log('Received request to update password for ID:', id);
+
+        // Attempt to find the user by ID
+        const pilot = await LocomotivePilotModel.findOne({ where: { locomotivePilotID: id } });
 
         if (!pilot) {
+            console.log("Locomotive pilot not found for ID:", id);
             return res.status(404).json({ message: "Locomotive pilot not found" });
         }
 
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10); // Change newPassword to password
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Update the password in the database directly in the existing 'password' field
+        // Update the password in the database
         await LocomotivePilotModel.update(
-            { password: hashedPassword }, // Save the hashed password to the 'password' field
-            { where: { locomotiveEmail } } // Find by email
+            { password: hashedPassword },
+            { where: { locomotivePilotID: id } }
         );
 
-        console.log('Password updated successfully for:', locomotiveEmail);
+        console.log('Password updated successfully for ID:', id);
         return res.status(200).json({ message: "Password updated successfully" });
     } catch (error) {
         console.error("Error updating password:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
 };
-
