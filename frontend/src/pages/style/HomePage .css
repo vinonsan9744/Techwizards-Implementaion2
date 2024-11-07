@@ -306,7 +306,9 @@ height: 60%;
   border-radius: 16px;  
 }
 
+
 .HomePage-left-bottom-output1-box{
+  display: flex;
   background-color: #355e5e;
   align-items: flex-start;
   justify-content: center;
@@ -318,13 +320,11 @@ height: 60%;
   border-radius: 16px; 
 }
 
-.red-background {
-  background-color: red;
-  color: white; /* Optional: change text color to improve readability */
-  width: 100%;
-  height: 100%;
-  border-radius: 16px; 
+.text-red {
+  color: red;
 }
+
+
 .HomePage-left-bottom-output1-box p{
   color: #e4f2e7;
   font-weight: bolder;
