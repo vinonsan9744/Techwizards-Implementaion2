@@ -19,63 +19,111 @@ const HomePage = (props)=> {
   const [isGreen, setIsGreen] = useState(false);
   const [time, setTime] = useState(new Date()); // State to hold current time
   const [location, setLocation] = useState("loading");
-  const valuelocation=useLocation();
+  const valuelocation = useLocation();
   const [hazards, setHazards] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [nextLocation, setNextLocation] = useState(null);
   const [coordinates, setCoordinates] = useState(null);
   console.log(valuelocation);
+  const [weatherLocation1, setWeatherLocation1] = useState({});
+  const [weatherLocation2, setWeatherLocation2] = useState({});
 
-  
-  
+  // Helper function for visibility status
+  const getVisibilityStatus = (visibilityKm) => {
+    if (visibilityKm >= 10) {
+      return "Good visibility";
+    } else if (visibilityKm >= 5) {
+      return "Average visibility";
+    } else {
+      return "Low visibility";
+    }
+  };
+
+  // Weather state for both locations
   const [weather, setWeather] = useState({
-    temperature: 0,
-    chance_of_rain: 0,
-    Rain_prob:'loading',
-    wind_speed:0,
+    current: {
+      temperature: 0,
+      chance_of_rain: 0,
+      rain_prob: 'loading',
+      wind_speed: 0,
+      rain_level: 'loading',
+      visibility_status: 'N/A',
+    },
+    next: {
+      temperature: 0,
+      chance_of_rain: 0,
+      rain_prob: 'loading',
+      wind_speed: 0,
+      rain_level: 'loading',
+      visibility_status: 'N/A',
+    }
   });
 
   const handleButtonClick = () => {
     setIsContentVisible(!isContentVisible);
     setIsGreen(!isGreen);
   };
- 
+
   const weatherApiKey = "422e1d8e08dad104d47a623408c8f5a1";
 
-  // Fetch weather data based on the location name
-  const fetchWeatherData = async (locationName) => {
-      try {
-          const response = await fetch(
-              `https://api.openweathermap.org/data/2.5/weather?q=${locationName}&appid=${weatherApiKey}&units=metric`
-          );
-          if (!response.ok) {
-              throw new Error(`Error: ${response.status}`);
-          }
-          const data = await response.json();
-          console.log("Weather API Response: ", data);
+  // Fetch weather data for both locations
+  const fetchWeatherData = async (location, nextLocation) => {
+    try {
+      console.log("Fetching weather data...");
+      const [response1, response2] = await Promise.all([
+        fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${weatherApiKey}&units=metric`),
+        fetch(`https://api.openweathermap.org/data/2.5/weather?q=${nextLocation}&appid=${weatherApiKey}&units=metric`)
+      ]);
 
-          // Set weather data
-          setWeather({
-              temperature: Math.round(data.main.temp),
-              chance_of_rain: data.clouds.all, // You can adjust this logic as needed
-              Rain_prob: data.weather[0].description,
-              wind_speed:Math.round(data.wind.speed*3.6).toFixed(0)
-          });
-      } catch (error) {
-          console.error("Error fetching weather data: ", error);
+      if (!response1.ok || !response2.ok) {
+        throw new Error(`Error: ${response1.status}, ${response2.status}`);
       }
+
+      const data1 = await response1.json();
+      const data2 = await response2.json();
+
+      const visibilityInKm1 = (data1.visibility / 1000).toFixed(0);
+      const visibilityInKm2 = (data2.visibility / 1000).toFixed(0);
+
+      const weatherLocation1 = {
+        temperature: Math.round(data1.main.temp),
+        chance_of_rain: data1.clouds.all,
+        rain_prob: data1.weather[0].main,
+        wind_speed: Math.round(data1.wind.speed * 3.6).toFixed(0),
+        rainlevel: data1.weather[0].description,
+        weathervisibility: visibilityInKm1 || 'N/A',
+        visibilityStatus: getVisibilityStatus(visibilityInKm1),
+      };
+
+      const weatherLocation2 = {
+        temperature: Math.round(data2.main.temp),
+        chance_of_rain: data2.clouds.all,
+        rain_prob: data2.weather[0].main,
+        wind_speed: Math.round(data2.wind.speed * 3.6).toFixed(0),
+        rainlevel: data2.weather[0].description,
+        weathervisibility: visibilityInKm2 || 'N/A',
+        visibilityStatus: getVisibilityStatus(visibilityInKm2),
+      };
+
+      setWeatherLocation1(weatherLocation1);
+      setWeatherLocation2(weatherLocation2);
+      console.log("Weather data fetched:", weatherLocation1, weatherLocation2);
+
+    } catch (error) {
+      console.error("Error fetching weather data: ", error);
+    }
   };
 
   useEffect(() => {
-      // Get the starting location passed through the router
-      const startLocation = valuelocation.state?.startLocation || "unknown location";
-      setLocation(startLocation);
-      
-      // Fetch weather data for the starting location
-      fetchWeatherData(startLocation);
-  }, [valuelocation.state]);
+    const startLocation = valuelocation.state?.startLocation || "unknown location";
+    setLocation(startLocation);
+    console.log("Starting location set:", startLocation);
 
+    fetchWeatherData(startLocation, nextLocation);
+  }, [valuelocation.state, nextLocation]);
+
+  
   // Format the time and date
   const formattedDate = time.toLocaleDateString("en-GB", {
     weekday: "long",
@@ -90,17 +138,11 @@ const HomePage = (props)=> {
 
   useEffect(() => {
     const fetchHazards = async () => {
-      setLoading(true);  // Start loading
+      setLoading(true);
       try {
-        console.log("Fetching hazards for location:", location); // Log the location being used
         const response = await axios.get(`http://localhost:8000/hazard/locationName/${location}`);
-        
-        // Log full response to see what is returned
-        console.log("API response:", response);
-
         if (Array.isArray(response.data)) {
           setHazards(response.data);
-          console.log("Hazards data:", response.data);
         } else {
           console.error("Expected an array but got:", response.data);
           setHazards([]);
@@ -109,26 +151,21 @@ const HomePage = (props)=> {
         console.error("Error fetching hazards:", error);
         setError("Failed to load hazard data.");
       } finally {
-        setLoading(false); // Stop loading after fetch attempt
+        setLoading(false);
       }
     };
 
-    // Fetch hazards only if location is defined and not empty
     if (location) {
       fetchHazards();
-    } else {
-      console.log("Location is not set. Skipping fetch.");
     }
   }, [location]);
 
-  // Fetch next location based on the current location
   const fetchNextLocation = async (currentLocation) => {
     try {
       const response = await axios.get(`http://localhost:8000/location/nextLocation/${currentLocation}`);
       if (response.data && response.data.locationName) {
         setNextLocation(response.data.locationName);
-      } else {
-        console.log("No next location found.");
+        console.log("Next location fetched:", response.data.locationName);
       }
     } catch (error) {
       console.error("Error fetching next location:", error);
@@ -137,7 +174,7 @@ const HomePage = (props)=> {
 
   useEffect(() => {
     if (location && location !== "loading") {
-      fetchNextLocation(location); // Fetch the next location when the current location changes
+      fetchNextLocation(location);
     }
   }, [location]);
   
@@ -178,12 +215,12 @@ const HomePage = (props)=> {
                                
                               </div>
                               <div className="HomePage-left-top-side-content-weather-box container-flex">
-                                <h6>chance of rain {weather.chance_of_rain}%</h6>
+                                <h6>chance of rain {weatherLocation1.chance_of_rain}%</h6>
                               </div>
                               <div className="HomePage-left-top-side-content-weather2-box container-flex">
                                 <div className="row">
                                   <div className="HomePage-left-top-side-content-temperature-box container-flex">
-                                  <h6>{weather.temperature}°C</h6>
+                                  <h6>{weatherLocation1.temperature}°C</h6>
                                   </div>
                                   <div className="HomePage-left-top-side-content-rain-box container-flex">
                                     <div className="row">
@@ -191,7 +228,7 @@ const HomePage = (props)=> {
                                         <h1><FaCloudRain /></h1>
                                       </div>
                                       <div className="HomePage-left-top-side-content-rain-icon-label-box container-flex">
-                                        <h6>{weather.Rain_prob}</h6>
+                                        <h6>{weatherLocation1.rain_prob}</h6>
                                       </div>
                                     </div>
                                   </div>
@@ -211,7 +248,7 @@ const HomePage = (props)=> {
                             <h1><FaWind /></h1>
                           </div>
                           <div className="HomePage-left-middle-wind-icon-label-box container-flex">
-                            <h4>{weather.wind_speed} km/h</h4>
+                            <h4>{weatherLocation1.wind_speed} km/h</h4>
                           </div>
                         </div>
                       </div>
@@ -221,7 +258,7 @@ const HomePage = (props)=> {
                             <h1><IoIosCloudyNight /></h1>
                           </div>
                           <div className="HomePage-left-middle-rainfall-icon-label-box container-flex">
-                            <h1>Cloudy</h1>
+                            <h1>{weatherLocation1.rain_prob}</h1>
                           </div>
                         </div>
                       </div>
@@ -231,7 +268,7 @@ const HomePage = (props)=> {
                             <h1><BsFillCloudFog2Fill /></h1>
                           </div>
                           <div className="HomePage-left-middle-fog-icon-label-box container-flex">
-                            <h1>Low Fog</h1>
+                            <h1>{weatherLocation1.visibilityStatus}</h1>
                           </div>
                         </div>
                       </div>
@@ -239,24 +276,24 @@ const HomePage = (props)=> {
                   </div>
                   <div className="HomePage-left-bottom-box container-flex">
                     <div className="row">
-                      <div className="HomePage-left-bottom-output1-box container-flex ">
-                      <div className={hazards.length > 0 ? 'red-background' : ''}>
-  {loading ? (
-    <h2>Loading...</h2>  // Display while loading
-  ) : error ? (
-    <h2>{error}</h2>  // Display error if any
-  ) : hazards.length > 0 ? (
-    hazards.map((hazard, index) => (
-      <div key={index} className="hazard">
-        <h2>Caution: {hazard.HazardType} might be nearby. Stay alert.</h2>
-      </div>
-    ))  
-  ) : (
-    <h2>No hazards available</h2>  // Show if hazards array is empty
-  )}
+                    <div className="HomePage-left-bottom-output1-box container-flex">
+  <div className={hazards.length > 0 ? 'text-red' : ''}>
+    {loading ? (
+      <h2>Loading...</h2>  // Display while loading
+    ) : error ? (
+      <h2>{error}</h2>  // Display error if any
+    ) : hazards.length > 0 ? (
+      hazards.map((hazard, index) => (
+        <div key={index} className="hazard">
+          <h2>Caution: {hazard.HazardType} might be nearby. Stay alert.</h2>
+        </div>
+      ))
+    ) : (
+      <h2>No hazards available</h2>  // Show if hazards array is empty
+    )}
+  </div>
 </div>
 
-                      </div>
                       <div className="HomePage-left-bottom-output1-box container-flex"></div>
                     </div>
                   </div>
@@ -290,16 +327,16 @@ const HomePage = (props)=> {
                             <div className="HomePage-bottom-top-side-content-location-box container-flex">
                               <h6>{nextLocation || "Loading next location..."}</h6>
                             </div>
-                            <div className="HomePage-bottom-top-side-content-weather-box container-flex"><h6>chance of rain 88%</h6></div>
+                            <div className="HomePage-bottom-top-side-content-weather-box container-flex"><h6>chance of rain {weatherLocation2.chance_of_rain}%</h6></div>
                             <div className="HomePage-bottom-top-side-content-weather2-box container-flex">
                               <div className="row">
-                                <div className="HomePage-bottom-top-side-content-temperature-box container-flex"><h6>30 C</h6></div>
+                                <div className="HomePage-bottom-top-side-content-temperature-box container-flex"><h6>{weatherLocation2.temperature}°C</h6></div>
                                 <div className="HomePage-bottom-top-side-content-rain-box container-flex">
                                   <div className="row">
                                     <div className="HomePage-bottom-top-side-content-rain-icon-box container-flex">
                                       <h1><FaCloudRain /></h1></div>
                                     <div className="HomePage-bottom-top-side-content-rain-icon-label-box container-flex">
-                                      <h6>Heavy rain</h6></div>
+                                      <h6>{weatherLocation2.rain_prob}</h6></div>
                                   </div>
                                 </div>
                               </div>
@@ -314,7 +351,7 @@ const HomePage = (props)=> {
                             <h1><FaWind /></h1>
                           </div>
                           <div className="HomePage-left-middle-wind-icon-label-box container-flex">
-                            <h4>8 km/h</h4>
+                            <h4>{weatherLocation2.wind_speed} km/h</h4>
                           </div>
                         </div>
                       </div>
@@ -324,7 +361,7 @@ const HomePage = (props)=> {
                             <h1><IoIosCloudyNight /></h1>
                           </div>
                           <div className="HomePage-left-middle-rainfall-icon-label-box container-flex">
-                            <h1>Cloudy</h1>
+                            <h1>{weatherLocation2.rain_prob}</h1>
                           </div>
                         </div>
                       </div>
@@ -334,7 +371,7 @@ const HomePage = (props)=> {
                             <h1><BsFillCloudFog2Fill /></h1>
                           </div>
                           <div className="HomePage-left-middle-fog-icon-label-box container-flex">
-                            <h1>Low Fog</h1>
+                            <h1>{weatherLocation2.visibilityStatus}</h1>
                           </div>
                         </div>
                       </div>
