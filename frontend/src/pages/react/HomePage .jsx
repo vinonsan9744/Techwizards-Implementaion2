@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useState,useEffect  } from "react";
 import "./../style/HomePage .css";
@@ -6,18 +8,32 @@ import { FaWind } from "react-icons/fa";
 import { IoIosCloudyNight } from "react-icons/io";
 import { BsFillCloudFog2Fill } from "react-icons/bs";
 import { TbLayoutSidebarLeftExpandFilled } from "react-icons/tb";
-import { useNavigate } from 'react-router-dom';
+import { FaRoute } from "react-icons/fa";
+import { useLocation,useNavigate} from 'react-router-dom';
+import axios from 'axios';
 
-function HomePage() {
+
+const HomePage = (props)=> {
   const navigate = useNavigate();
   const [isContentVisible, setIsContentVisible] = useState(true);
   const [isGreen, setIsGreen] = useState(false);
   const [time, setTime] = useState(new Date()); // State to hold current time
   const [location, setLocation] = useState("loading");
+  const valuelocation=useLocation();
+  const [hazards, setHazards] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [nextLocation, setNextLocation] = useState(null);
+  const [coordinates, setCoordinates] = useState(null);
+  console.log(valuelocation);
+
+  
+  
   const [weather, setWeather] = useState({
     temperature: 0,
     chance_of_rain: 0,
     Rain_prob:'loading',
+    wind_speed:0,
   });
 
   const handleButtonClick = () => {
@@ -25,100 +41,40 @@ function HomePage() {
     setIsGreen(!isGreen);
   };
  
-  const apiKey = "4ac19be725954e2ca4bebbd099e34f09"; 
   const weatherApiKey = "422e1d8e08dad104d47a623408c8f5a1";
-  
 
-  // Function to get the village name from OpenCage API
-  const getLocationName = async (latitude, longitude) => {
-    try {
-      const response = await fetch(
-        `https://api.opencagedata.com/geocode/v1/json?q=${latitude},${longitude}&key=${apiKey}`
-      );
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log("Reverse Geocoding API Response: ", data);
+  // Fetch weather data based on the location name
+  const fetchWeatherData = async (locationName) => {
+      try {
+          const response = await fetch(
+              `https://api.openweathermap.org/data/2.5/weather?q=${locationName}&appid=${weatherApiKey}&units=metric`
+          );
+          if (!response.ok) {
+              throw new Error(`Error: ${response.status}`);
+          }
+          const data = await response.json();
+          console.log("Weather API Response: ", data);
 
-      if (data.results.length > 0) {
-        const components = data.results[0].components;
-        const village = components.village || components.suburb || components.locality || "Village not found";
-        setLocation(village);
-      } else {
-        setLocation("Village not found");
+          // Set weather data
+          setWeather({
+              temperature: Math.round(data.main.temp),
+              chance_of_rain: data.clouds.all, // You can adjust this logic as needed
+              Rain_prob: data.weather[0].description,
+              wind_speed:Math.round(data.wind.speed*3.6).toFixed(0)
+          });
+      } catch (error) {
+          console.error("Error fetching weather data: ", error);
       }
-    } catch (error) {
-      console.error("Error fetching location name: ", error);
-      setLocation("Unable to retrieve village name");
-    }
   };
 
-  // Fallback to IP-based location if geolocation fails
-  const getIpLocation = async () => {
-    try {
-      const response = await fetch('https://ipapi.co/json/');
-      const data = await response.json();
-      console.log("IP-based location: ", data);
-      if (data.city && data.country_name) {
-        setLocation(`${data.city}, ${data.country_name}`);
-      } else {
-        setLocation("Unable to determine location based on IP.");
-      }
-    } catch (error) {
-      console.error("Error fetching IP-based location: ", error);
-      setLocation("Unable to retrieve location");
-    }
-  };
-
-  const fetchWeatherData = async (city) => {
-    try {
-      const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${weatherApiKey}&units=metric`
-      );
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log("Weather API Response: ", data);
+  useEffect(() => {
+      // Get the starting location passed through the router
+      const startLocation = valuelocation.state?.startLocation || "unknown location";
+      setLocation(startLocation);
       
-      // Set weather data
-      setWeather({
-        temperature: Math.round(data.main.temp),
-        chance_of_rain: data.clouds.all, // Update this logic as needed
-        Rain_prob : data.visibility,
-        
-      });
-    } catch (error) {
-      console.error("Error fetching weather data: ", error);
-    }
-  };
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          console.log(`Lat: ${latitude}, Lon: ${longitude}`);
-          getLocationName(latitude, longitude);
-        },
-        (error) => {
-          console.error("Geolocation error: ", error);
-          getIpLocation();
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    } else {
-      getIpLocation();
-    }
-  }, []);
-
-  // Fetch weather data based on location or default city
-  useEffect(() => {
-    if (location) {
-      fetchWeatherData(location);
-    } 
-  }, [location]);
+      // Fetch weather data for the starting location
+      fetchWeatherData(startLocation);
+  }, [valuelocation.state]);
 
   // Format the time and date
   const formattedDate = time.toLocaleDateString("en-GB", {
@@ -132,7 +88,59 @@ function HomePage() {
     minute: "2-digit",
   });
 
+  useEffect(() => {
+    const fetchHazards = async () => {
+      setLoading(true);  // Start loading
+      try {
+        console.log("Fetching hazards for location:", location); // Log the location being used
+        const response = await axios.get(`http://localhost:8000/hazard/locationName/${location}`);
+        
+        // Log full response to see what is returned
+        console.log("API response:", response);
 
+        if (Array.isArray(response.data)) {
+          setHazards(response.data);
+          console.log("Hazards data:", response.data);
+        } else {
+          console.error("Expected an array but got:", response.data);
+          setHazards([]);
+        }
+      } catch (error) {
+        console.error("Error fetching hazards:", error);
+        setError("Failed to load hazard data.");
+      } finally {
+        setLoading(false); // Stop loading after fetch attempt
+      }
+    };
+
+    // Fetch hazards only if location is defined and not empty
+    if (location) {
+      fetchHazards();
+    } else {
+      console.log("Location is not set. Skipping fetch.");
+    }
+  }, [location]);
+
+  // Fetch next location based on the current location
+  const fetchNextLocation = async (currentLocation) => {
+    try {
+      const response = await axios.get(`http://localhost:8000/location/nextLocation/${currentLocation}`);
+      if (response.data && response.data.locationName) {
+        setNextLocation(response.data.locationName);
+      } else {
+        console.log("No next location found.");
+      }
+    } catch (error) {
+      console.error("Error fetching next location:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (location && location !== "loading") {
+      fetchNextLocation(location); // Fetch the next location when the current location changes
+    }
+  }, [location]);
+  
   return (
     <>
       <div className="container-flex vh-100">
@@ -203,7 +211,7 @@ function HomePage() {
                             <h1><FaWind /></h1>
                           </div>
                           <div className="HomePage-left-middle-wind-icon-label-box container-flex">
-                            <h4>8 km/h</h4>
+                            <h4>{weather.wind_speed} km/h</h4>
                           </div>
                         </div>
                       </div>
@@ -231,7 +239,24 @@ function HomePage() {
                   </div>
                   <div className="HomePage-left-bottom-box container-flex">
                     <div className="row">
-                      <div className="HomePage-left-bottom-output1-box container-flex"></div>
+                      <div className="HomePage-left-bottom-output1-box container-flex ">
+                      <div className={hazards.length > 0 ? 'red-background' : ''}>
+  {loading ? (
+    <h2>Loading...</h2>  // Display while loading
+  ) : error ? (
+    <h2>{error}</h2>  // Display error if any
+  ) : hazards.length > 0 ? (
+    hazards.map((hazard, index) => (
+      <div key={index} className="hazard">
+        <h2>Caution: {hazard.HazardType} might be nearby. Stay alert.</h2>
+      </div>
+    ))  
+  ) : (
+    <h2>No hazards available</h2>  // Show if hazards array is empty
+  )}
+</div>
+
+                      </div>
                       <div className="HomePage-left-bottom-output1-box container-flex"></div>
                     </div>
                   </div>
@@ -243,7 +268,12 @@ function HomePage() {
           <div className="HomePage-middle-main-box col-sm-12 col-md-4 col-lg-4 col-xl-4">
                 <div className="HomePage-middle-main-content-box container-flex">
                   <div className="row">
-                    <div className="HomePage-middle-main-top-content-box container-flex"></div>
+                    <div className="HomePage-middle-main-top-content-box container-flex">
+                    <p> {valuelocation.state?.startLocation || 'not selected'} </p>
+                    <FaRoute />
+                    <p> {valuelocation.state?.endLocation || 'not selected'} </p>
+                    </div>
+                    <div className="HomePage-middle-main-middle-content-box container-flex"></div>
                     <div className="HomePage-middle-main-bottom-content-box container-flex"></div>
                   </div>
                 </div>
@@ -257,7 +287,9 @@ function HomePage() {
                   <div className="row">
                             
                             <div className="HomePage-bottom-top-side-content-next-location-box container-flex"><h6>Next Location</h6></div>
-                            <div className="HomePage-bottom-top-side-content-location-box container-flex"><h6>Jaffna</h6></div>
+                            <div className="HomePage-bottom-top-side-content-location-box container-flex">
+                              <h6>{nextLocation || "Loading next location..."}</h6>
+                            </div>
                             <div className="HomePage-bottom-top-side-content-weather-box container-flex"><h6>chance of rain 88%</h6></div>
                             <div className="HomePage-bottom-top-side-content-weather2-box container-flex">
                               <div className="row">

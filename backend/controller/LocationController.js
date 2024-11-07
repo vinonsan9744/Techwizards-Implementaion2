@@ -1,4 +1,5 @@
 import { LocationModel } from "../postgres/postgres.js";  // Assuming you've exported LocationModel from postgresql.js
+import { Op } from 'sequelize';
 
 // Get all locations
 export const getAllLocations = async (req, res) => {
@@ -99,5 +100,62 @@ export const getTasksByLocationName = async (req, res) => {
         res.status(200).json(location);
     } catch (e) {
         res.status(400).json({ error: e.message });
+    }
+};
+
+
+// Get next location by locationName
+export const getNextLocation = async (req, res) => {
+    const { locationName } = req.params;
+
+    console.log('Received locationName:', locationName);
+
+    try {
+        // Find the current location with the provided locationName (case-insensitive search)
+        const currentLocation = await LocationModel.findOne({
+            where: {
+                locationName: {
+                    [Op.iLike]: locationName  // Case-insensitive match (PostgreSQL specific)
+                }
+            }
+        });
+
+        // Check if the current location exists
+        if (!currentLocation) {
+            return res.status(404).json({ error: 'Current location not found' });
+        }
+
+        console.log('Current location found:', currentLocation);
+
+        // Try to find the next location by locationId in ascending order
+        let nextLocation = await LocationModel.findOne({
+            where: {
+                locationId: { [Op.gt]: currentLocation.locationId }  // Find next by ascending locationId
+            },
+            order: [['locationId', 'ASC']]  // Ensure ascending order by locationId
+        });
+
+        // If no next location is found, try to find the previous location in descending order
+        if (!nextLocation) {
+            console.log('No next location found in ascending order, switching to descending order.');
+
+            nextLocation = await LocationModel.findOne({
+                where: {
+                    locationId: { [Op.lt]: currentLocation.locationId }  // Find previous by descending locationId
+                },
+                order: [['locationId', 'DESC']]  // Ensure descending order by locationId
+            });
+        }
+
+        // If no location is still found, return a message
+        if (!nextLocation) {
+            return res.status(404).json({ message: "No next or previous location found" });
+        }
+
+        // Send the next or previous location as a response
+        return res.status(200).json(nextLocation);
+    } catch (error) {
+        console.error("Error fetching next location:", error);
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
