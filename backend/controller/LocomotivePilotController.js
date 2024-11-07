@@ -215,30 +215,30 @@ export const updateLocomotivePilot = async (req, res) => {
     }
 };
 
-// POST - Login with locomotivePilotID and Password
+// POST - Locomotive pilot login with locomotivePilotID and password
 export const locomotivePilotLogin = async (req, res) => {
     const { locomotivePilotID, password } = req.body;
-  
+
     try {
         const pilot = await LocomotivePilotModel.findOne({ where: { locomotivePilotID } });
-  
+
         if (!pilot) {
-            return res.status(404).json({ error: "Locomotive Pilot ID not found" });
+            return res.status(404).json({ error: 'Locomotive Pilot ID not found' });
         }
 
-        // Check if the Password is correct using bcrypt
+        // Verify the password with bcrypt
         const isPasswordValid = await bcrypt.compare(password, pilot.password);
         if (!isPasswordValid) {
-            return res.status(401).json({ error: "Incorrect password" });
+            return res.status(401).json({ error: 'Incorrect password' });
         }
 
-        return res.status(200).json({ message: "Login successful", pilot });
-  
+        return res.status(200).json({ message: 'Login successful', pilot });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ error: 'Internal server error' });
     }
 };
+
 
 // Verify if username exists
 export const verifyUsername = async (req, res) => {

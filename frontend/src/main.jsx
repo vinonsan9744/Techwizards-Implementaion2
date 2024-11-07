@@ -20,6 +20,7 @@ import UpdateHazard from "./pages/react/UpdateHazard";
 import Checking from "./pages/react/Checking";
 import AdminViewHazardLocation from "./pages/react/AdminViewHazardLocation";
 import HazardUpdateAutomatically from "./pages/react/HazardUpdateAutomatically";
+import App from "./App";
 
 
 
@@ -83,6 +84,10 @@ const router = createBrowserRouter([
   {
     path: "/hazardupdate",
     element: <HazardUpdateAutomatically />,
+  },
+  {
+    path: "/app",
+    element: <App />,
   },
   
 ]);

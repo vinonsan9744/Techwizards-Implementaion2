@@ -180,6 +180,8 @@ html {
   font-weight: bolder;
 }
 
+
+
 /* home page left top style end  */
 
 /* home page middle top style start  */
@@ -306,12 +308,35 @@ height: 60%;
 
 .HomePage-left-bottom-output1-box{
   background-color: #355e5e;
+  align-items: flex-start;
+  justify-content: center;
   width: 96%;
   height: 25%;
   margin-left: 2%;
   margin-right: 2%;
   margin-top: 2%;
   border-radius: 16px; 
+}
+
+.red-background {
+  background-color: red;
+  color: white; /* Optional: change text color to improve readability */
+  width: 100%;
+  height: 100%;
+  border-radius: 16px; 
+}
+.HomePage-left-bottom-output1-box p{
+  color: #e4f2e7;
+  font-weight: bolder;
+  font-size: 1.2rem;
+  margin-top: 2%;
+}
+
+.HomePage-left-bottom-output1-box h2{
+  color: #e4f2e7;
+  font-weight: bolder;
+  font-size: 1rem;
+  margin-top: 2%;
 }
 
 /* home page left side design end  */
@@ -332,9 +357,34 @@ height: 60%;
     align-items: flex-start;
     justify-content:center;
 }
+
 .HomePage-middle-main-top-content-box{
+  display: flex;
   background-color: #e4f2e7;
-  height: 46%;
+  height: 10%;
+  width: 96%;
+  margin: 2%;
+  border-radius: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.HomePage-middle-main-top-content-box p {
+  margin: 0;                   /* Remove default margin */
+  font-size: 1.2rem;           /* Set font size */
+  color: #355e5e;
+  font-weight: bolder;                 /* Text color */
+}
+
+.HomePage-middle-main-top-content-box svg {
+  margin: 0 10px;              /* Add margin around the icon */
+  color: #355e5e;              /* Set the icon color */
+  font-size: 1.5rem;           /* Increase icon size */
+}
+
+.HomePage-middle-main-middle-content-box{
+  background-color: #e4f2e7;
+  height: 40%;
   width: 96%;
   margin: 2%;
   border-radius: 16px;
@@ -344,13 +394,15 @@ height: 60%;
 
 .HomePage-middle-main-bottom-content-box{
   background-color: #e4f2e7;
-  height: 46%;
+  height: 40%;
   width: 96%;
   margin: 2%;
   border-radius: 16px;
   align-items: center;
   justify-content: flex-start;
 }
+
+
 
 /* middle content style end  */
 

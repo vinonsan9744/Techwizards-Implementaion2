@@ -59,7 +59,7 @@ function LoginPage() {
 
       if (selectedOption === "option1") {
         // Locomotive pilot login endpoint
-        loginEndpoint = "http://localhost:4000/api/locomotivePilot/login";
+        loginEndpoint = "http://localhost:8000/locomotivePilot/login";
         payload = { locomotivePilotID: id, password }; // Adjust payload for locomotive pilot
       } else if (selectedOption === "option2") {
         // Admin login endpoint
