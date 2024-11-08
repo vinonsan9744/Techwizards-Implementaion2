@@ -1,9 +1,9 @@
 import { Sequelize } from "sequelize";
 import { createLocationModel } from "../model/LocationSchema.js";
 import { createLocomotivePilotModel } from "../model/LocomotivePilotSchema.js";
-import {createAdminModel} from "../model/AdminSchema.js";
+import { createAdminModel } from "../model/AdminSchema.js";
 import { createHazardModel } from "../model/HazardSchema.js";
-import {createLocomotivePilotHazardModel} from "../model/LocomotivePilotHazardSchema.js";
+import { createLocomotivePilotHazardModel } from "../model/LocomotivePilotHazardSchema.js";
 
 // Setup the connection to PostgreSQL database
 const sequelize = new Sequelize('TechWizard', 'postgres', 'root', {
@@ -17,7 +17,7 @@ let AdminModel = null;
 let HazardModel = null;
 let LocomotivePilotHazardModel = null;
 
-// Establish the connection and sync the model
+// Establish the connection and initialize models
 const connection = async () => {
     try {
         // Authenticate the database connection
@@ -26,29 +26,25 @@ const connection = async () => {
 
         // Initialize the models
         LocationModel = await createLocationModel(sequelize);
-        console.log('LocationModel initialized.');
-        
         LocomotivePilotModel = await createLocomotivePilotModel(sequelize);
-        console.log('LocomotivePilotModel initialized.');
-
         AdminModel = await createAdminModel(sequelize);
-        console.log('AdminModel initialized.');
-
         HazardModel = await createHazardModel(sequelize);
-        console.log('HazardModel initialized.');
-
         LocomotivePilotHazardModel = await createLocomotivePilotHazardModel(sequelize);
-        console.log('LocomotivePilotHazardModel initialized.');
+
+        // Define associations after models are initialized
+        LocomotivePilotModel.hasMany(LocomotivePilotHazardModel, { foreignKey: 'locomotivePilotID' });
+        LocomotivePilotHazardModel.belongsTo(LocomotivePilotModel, { foreignKey: 'locomotivePilotID' });
 
         // Sync all models with the database
-        await sequelize.sync({ force: false }); // You can change to `{ force: true }` if you want to drop and recreate tables
+        await sequelize.sync({ force: false }); // Use `{ force: true }` if you need to drop and recreate tables
         console.log('Database synced successfully.');
-        
+
     } catch (error) {
         console.error('Unable to connect to the database:', error);
     }
-}
+};
 
+// Export initialized models and connection function
 export {
     connection,
     LocationModel,
@@ -56,5 +52,4 @@ export {
     AdminModel,
     HazardModel,
     LocomotivePilotHazardModel
-}
-
+};

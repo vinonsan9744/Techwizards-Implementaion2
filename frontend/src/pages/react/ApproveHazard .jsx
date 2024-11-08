@@ -31,7 +31,7 @@ function ApproveHazard() {
 
   useEffect(() => {
     try {
-      axios.get('http://localhost:4000/api/locomotivePilotHazard')
+      axios.get('http://localhost:8000/pilotHazard')
       .then(response => {
         setHazardCount(response.data.length);
         setNotifications(response.data);
