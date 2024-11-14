@@ -21,6 +21,7 @@ const HomePage = (props)=> {
   const [location, setLocation] = useState("loading");
   const valuelocation = useLocation();
   const [hazards, setHazards] = useState([]);
+  const [nexthazards, setNextHazards] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [nextLocation, setNextLocation] = useState(null);
@@ -28,6 +29,15 @@ const HomePage = (props)=> {
   console.log(valuelocation);
   const [weatherLocation1, setWeatherLocation1] = useState({});
   const [weatherLocation2, setWeatherLocation2] = useState({});
+  const [message, setMessage] = useState(null); // Message to display (obstacle detected or route clear)
+  const [isObstacleDetected, setIsObstacleDetected] = useState(false); // To track if obstacle was detected
+  const [timer, setTimer] = useState(null); // To manage timeout for clearing messages
+  const [currentHazardIndex, setCurrentHazardIndex] = useState(0);
+  const [NextHazardIndex, setNextHazardIndex] = useState(0);
+  const currentHazard = hazards[currentHazardIndex];
+  const nextHazard = nexthazards[NextHazardIndex];
+  
+
 
   // Helper function for visibility status
   const getVisibilityStatus = (visibilityKm) => {
@@ -141,24 +151,111 @@ const HomePage = (props)=> {
       setLoading(true);
       try {
         const response = await axios.get(`http://localhost:8000/hazard/locationName/${location}`);
-        if (Array.isArray(response.data)) {
+        if (response.data && Array.isArray(response.data)) {
           setHazards(response.data);
+          setError(null); // Clear previous errors
         } else {
-          console.error("Expected an array but got:", response.data);
           setHazards([]);
+          setError("Received data is not in the expected format.");
         }
       } catch (error) {
-        console.error("Error fetching hazards:", error);
+        setHazards([]); // Clear hazards on error
         setError("Failed to load hazard data.");
       } finally {
         setLoading(false);
       }
     };
-
-    if (location) {
-      fetchHazards();
-    }
+  
+    fetchHazards();
   }, [location]);
+
+
+  
+  useEffect(() => {
+    const fetchNextHazards = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`http://localhost:8000/hazard/locationName/${nextLocation}`);
+        if (response.data && Array.isArray(response.data)) {
+          setNextHazards(response.data);
+          setError(null); // Clear previous errors
+        } else {
+          setNextHazards([]);
+          setError("Received data is not in the expected format.");
+        }
+      } catch (error) {
+        setNextHazards([]); // Clear hazards on error
+        setError("Failed to load hazard data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchNextHazards();
+  }, [nextLocation]);
+  
+  useEffect(() => {
+    // Display each hazard in a loop with a 2-second interval if hazards are available
+    if (hazards.length > 0) {
+      const intervalId = setInterval(() => {
+        setCurrentHazardIndex((prevIndex) => (prevIndex + 1) % hazards.length);
+      }, 5000); // Change hazard every 2 seconds
+  
+      return () => clearInterval(intervalId); // Clear interval on component unmount
+    }
+  }, [hazards]); // Re-run effect when hazards array changes
+
+
+  useEffect(() => {
+    // Display each hazard in a loop with a 2-second interval if hazards are available
+    if (nexthazards.length > 0) {
+      const intervalId = setInterval(() => {
+        setNextHazardIndex((prevIndex) => (prevIndex + 1) % nexthazards.length);
+      }, 5000); // Change hazard every 2 seconds
+  
+      return () => clearInterval(intervalId); // Clear interval on component unmount
+    }
+  }, [nexthazards]); // Re-run effect when hazards array changes
+  
+  
+
+  // Function to determine the hazard area based on hazard type
+  const getHazardArea = (hazardType) => {
+    switch (hazardType.toLowerCase()) {
+      case 'bull':
+        return 'Bull Zone Alert! Stay Alert!';
+      case 'elephant':
+        return 'Elephant Zone Alert! Stay Alert!';
+      default:
+        return 'Unknown Area';
+    }
+  };
+
+
+   // Function to determine the hazard area based on hazard type
+   const getNextHazardArea = (hazardType) => {
+    switch (hazardType.toLowerCase()) {
+      case 'bull':
+        return 'Bull Zone Alert! Stay Alert!';
+      case 'elephant':
+        return 'Elephant Zone Alert! Stay Alert!';
+      case 'landslide':
+        return 'Landslide Zone Alert! Stay Alert!';
+      default:
+        return 'Unknown Area';
+    }
+  };
+
+  const getWeatherHazard = (weatherLocation1) => {
+    switch (weatherLocation1.visibilityStatus.toLowerCase()){
+      case 'Average visibility':
+        return 'low visiblity ! becareful';
+      case 'Low visibility':
+        return 'low visiblity ! becareful';
+      default:
+        return 'clear visiblity';
+    }
+  };
 
   const fetchNextLocation = async (currentLocation) => {
     try {
@@ -177,6 +274,58 @@ const HomePage = (props)=> {
       fetchNextLocation(location);
     }
   }, [location]);
+
+  useEffect(() => {
+    // Establish SSE connection with the backend
+    const eventSource = new EventSource('http://localhost:5000/start-detection');
+
+    // Listen for messages from the server
+    eventSource.onmessage = (event) => {
+      console.log("Received from server:", event.data); // Log the data for debugging
+
+      if (event.data.includes('Bull detected')) {
+        // If an obstacle (Bull) is detected
+        setMessage('Obstacle detected');
+        setIsObstacleDetected(true);
+
+        // Clear any existing timer
+        if (timer) {
+          clearTimeout(timer);
+        }
+
+        // Set a new 10-second timer to change the message to 'Route clear' after detection
+        const newTimer = setTimeout(() => {
+          setMessage('Route clear');
+          setIsObstacleDetected(false); // Reset the obstacle detection
+        }, 10000); // 10 seconds timer
+
+        setTimer(newTimer); // Store the new timer ID to reset it if another detection occurs
+      } else {
+        // If no obstacle detected, show the route clear message only if it's not currently detecting an obstacle
+        if (!isObstacleDetected) {
+          setMessage('Route clear');
+        }
+      }
+
+      setLoading(false); // Stop loading once the result is received
+    };
+
+    // Handle errors from SSE
+    eventSource.onerror = (error) => {
+      console.error('Error occurred while receiving updates:', error);
+      eventSource.close(); // Close the SSE connection
+      setLoading(false); // Stop loading on error
+    };
+
+    // Cleanup the connection and timer when the component unmounts
+    return () => {
+      eventSource.close();
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [isObstacleDetected, timer]); // Re-run the effect when either the obstacle status or timer changes
+
   
   return (
     <>
@@ -277,21 +426,20 @@ const HomePage = (props)=> {
                   <div className="HomePage-left-bottom-box container-flex">
                     <div className="row">
                     <div className="HomePage-left-bottom-output1-box container-flex">
-  <div className={hazards.length > 0 ? 'text-red' : ''}>
-    {loading ? (
-      <h2>Loading...</h2>  // Display while loading
-    ) : error ? (
-      <h2>{error}</h2>  // Display error if any
-    ) : hazards.length > 0 ? (
-      hazards.map((hazard, index) => (
-        <div key={index} className="hazard">
-          <h2>Caution: {hazard.HazardType} might be nearby. Stay alert.</h2>
+                    <div>
+      {loading ? (
+        <p>Loading hazards...</p>
+      ) : error ? (
+        <p>{error}</p>
+      ) : hazards.length === 0 ? (
+        <p>No hazards found for this location.</p>
+      ) : (
+        <div>
+          {/* Simple line output for hazard area */}
+          <p>{getHazardArea(currentHazard.HazardType)}</p>
         </div>
-      ))
-    ) : (
-      <h2>No hazards available</h2>  // Show if hazards array is empty
-    )}
-  </div>
+      )}
+    </div>
 </div>
 
                       <div className="HomePage-left-bottom-output1-box container-flex"></div>
@@ -310,7 +458,19 @@ const HomePage = (props)=> {
                     <FaRoute />
                     <p> {valuelocation.state?.endLocation || 'not selected'} </p>
                     </div>
-                    <div className="HomePage-middle-main-middle-content-box container-flex"></div>
+                    <div className="HomePage-middle-main-middle-content-box container-flex">
+                    {loading ? (
+        <div className="result-loading">Processing video...</div>
+      ) : (
+        <div
+          className={`result ${isObstacleDetected ? 'obstacle-detected' : 'no-obstacle'}`}
+        >
+          {message && <h2>{message}</h2>}
+        </div>
+      )}
+                    </div>
+
+
                     <div className="HomePage-middle-main-bottom-content-box container-flex"></div>
                   </div>
                 </div>
@@ -379,7 +539,22 @@ const HomePage = (props)=> {
                   </div>
                   <div className="HomePage-left-bottom-box container-flex">
                     <div className="row">
-                      <div className="HomePage-left-bottom-output1-box container-flex"></div>
+                      <div className="HomePage-left-bottom-output1-box container-flex">
+                      <div>
+      {loading ? (
+        <p>Loading hazards...</p>
+      ) : error ? (
+        <p>{error}</p>
+      ) : nexthazards.length === 0 ? (
+        <p>No hazards found for this location.</p>
+      ) : (
+        <div>
+          {/* Simple line output for hazard area */}
+          <p>{getNextHazardArea(nextHazard.HazardType)}</p>
+        </div>
+      )}
+    </div>
+                      </div>
                       <div className="HomePage-left-bottom-output1-box container-flex"></div>
                     </div>
                   </div>
