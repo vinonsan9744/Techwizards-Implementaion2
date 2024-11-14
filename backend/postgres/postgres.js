@@ -35,6 +35,11 @@ const connection = async () => {
         LocomotivePilotModel.hasMany(LocomotivePilotHazardModel, { foreignKey: 'locomotivePilotID' });
         LocomotivePilotHazardModel.belongsTo(LocomotivePilotModel, { foreignKey: 'locomotivePilotID' });
 
+        // Add the association to LocationModel using locationName as the key
+        LocationModel.hasMany(LocomotivePilotHazardModel, { foreignKey: 'locationName', sourceKey: 'locationName' });
+        LocomotivePilotHazardModel.belongsTo(LocationModel, { foreignKey: 'locationName', targetKey: 'locationName' });
+
+
         // Sync all models with the database
         await sequelize.sync({ force: false }); // Use `{ force: true }` if you need to drop and recreate tables
         console.log('Database synced successfully.');

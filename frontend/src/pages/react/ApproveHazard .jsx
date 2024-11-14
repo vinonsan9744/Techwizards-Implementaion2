@@ -30,27 +30,39 @@ function ApproveHazard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      axios.get('http://localhost:8000/pilotHazard')
-      .then(response => {
-        setHazardCount(response.data.length);
-        setNotifications(response.data);
-      })
-    } catch (error) {
-      console.error('Error fetching hazard data:', error);
-    }
+    const fetchHazardCount = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/pilotHazard/countHazards");
+        const count = response.data.count; 
+        setHazardCount(count);
+        if (count > 0) {
+          // Update notifications based on the exact count from the database
+          const newNotifications = Array.from({ length: count }, (_, index) => `Report ${index + 1}`);
+          setNotifications(newNotifications);
+        }
+      } catch (error) {
+        console.error("Error fetching hazard count:", error);
+        setNotifications((prevNotifications) => [
+          ...prevNotifications,
+          "Failed to fetch hazard count"
+        ]);
+      }
+    };
+    fetchHazardCount();
   }, []);
+  
 
   const handleNotificationClick = () => {
     setShowModal(true);
   };
+
   const handleCloseModal = () => {
     setShowModal(false);
   };
 
   const markAsRead = async (hazardId) => {
     try {
-      const hazardResponse = await axios.get(`http://localhost:4000/api/locomotivePilotHazard/hazardID/${hazardId}`);
+      const hazardResponse = await axios.get(`http://localhost:8000/pilotHazard/getHazardById/${hazardId}`);
       setSelectedNotification(hazardResponse.data);
       setSelectedHazardId(hazardId);
       setShowModal(false);
@@ -110,7 +122,7 @@ function ApproveHazard() {
   const submitData = async () => {
     try {
       // Perform the POST request
-      const postResponse = await axios.post('http://localhost:4000/api/hazard', {
+      const postResponse = await axios.post('http://localhost:8000/hazard/addHazard', {
         locationName: inputLocation,
         hazardType: inputHazard
       });
@@ -119,7 +131,7 @@ function ApproveHazard() {
       // Check if a hazard ID is selected for deletion
       if (selectedHazardId) {
         // Perform the DELETE request
-        await axios.delete(`http://localhost:4000/api/locomotivePilotHazard/hazardID/${selectedHazardId}`);
+        await axios.delete(`http://localhost:8000/pilotHazard/getHazardById/${selectedHazardId}`);
         console.log('DELETE successful'); // Log success message
       }
   
@@ -156,7 +168,7 @@ function ApproveHazard() {
   const handleDeclineConfirm = async () => {
     setShowDeclineConfirmModal(false);
     try {
-      await axios.delete(`http://localhost:4000/api/locomotivePilotHazard/hazardID/${selectedHazardId}`);
+      await axios.delete(`http://localhost:8000/pilotHazard/getHazardById/${selectedHazardId}`);
       setSuccessMessage('Hazard deleted successfully!');
       setNotifications(notifications.filter(notification => notification.hazardID !== selectedHazardId));
       setSelectedHazardId(null);
