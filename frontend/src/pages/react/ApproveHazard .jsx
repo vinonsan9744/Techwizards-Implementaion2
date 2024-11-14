@@ -31,18 +31,28 @@ function ApproveHazard() {
 
   
 
-  useEffect(() => {
+ useEffect(() => {
     const fetchHazardCount = async () => {
       try {
         const response = await axios.get("http://localhost:8000/pilotHazard/countHazards");
-        setHazardCount(response.data.count); // Assuming the response structure has `count`
+        const count = response.data.count; 
+        setHazardCount(count);
+        if (count > 0) {
+          // Update notifications based on the exact count from the database
+          const newNotifications = Array.from({ length: count }, (_, index) => `Report ${index + 1}`);
+          setNotifications(newNotifications);
+        }
       } catch (error) {
         console.error("Error fetching hazard count:", error);
+        setNotifications((prevNotifications) => [
+          ...prevNotifications,
+          "Failed to fetch hazard count"
+        ]);
       }
     };
-  
     fetchHazardCount();
   }, []);
+  
 
   const handleNotificationClick = () => {
     setShowModal(true);
