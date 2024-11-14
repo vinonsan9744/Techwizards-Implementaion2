@@ -29,7 +29,9 @@ function ApproveHazard() {
   const [selectedHazardId, setSelectedHazardId] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  
+
+ useEffect(() => {
     const fetchHazardCount = async () => {
       try {
         const response = await axios.get("http://localhost:8000/pilotHazard/countHazards");

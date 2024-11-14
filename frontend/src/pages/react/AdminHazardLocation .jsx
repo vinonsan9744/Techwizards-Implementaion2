@@ -109,14 +109,17 @@ function AdminHazardLocation() {
       try {
         if (selectedLocationName) {
           const response = await axios.get(`http://localhost:8000/hazard/locationName/${selectedLocationName}`);
-          setHazards(response.data);
+          console.log(response.data); // Log response data for inspection
+          setHazards(Array.isArray(response.data) ? response.data : []); // Ensure it's always an array
         }
       } catch (error) {
         console.error('Error fetching hazards:', error);
+        setHazards([]); // Default to an empty array in case of error
       }
     };
     fetchHazards();
   }, [selectedLocationName]);
+  
 
   const handleLocationNameSelect = (name) => {
     setSelectedLocationName(name);
