@@ -50,6 +50,14 @@ const HomePage = (props)=> {
     }
   };
 
+  const WindHazard = (wind_speed) => {
+    if (wind_speed > 6) {
+      return "Hazard occur";
+    } else {
+      return "No Hazard";
+    }
+  };
+
   // Weather state for both locations
   const [weather, setWeather] = useState({
     current: {
@@ -104,6 +112,7 @@ const HomePage = (props)=> {
         rainlevel: data1.weather[0].description,
         weathervisibility: visibilityInKm1 || 'N/A',
         visibilityStatus: getVisibilityStatus(visibilityInKm1),
+        WindBasedHazard: WindHazard(Math.round(data1.wind.speed * 3.6)),
       };
 
       const weatherLocation2 = {
@@ -114,6 +123,7 @@ const HomePage = (props)=> {
         rainlevel: data2.weather[0].description,
         weathervisibility: visibilityInKm2 || 'N/A',
         visibilityStatus: getVisibilityStatus(visibilityInKm2),
+        WindBasedHazard2: WindHazard(Math.round(data2.wind.speed * 3.6)),
       };
 
       setWeatherLocation1(weatherLocation1);
@@ -442,7 +452,9 @@ const HomePage = (props)=> {
     </div>
 </div>
 
-                      <div className="HomePage-left-bottom-output1-box container-flex"></div>
+                      <div className="HomePage-left-bottom-output1-box container-flex">
+                      {weatherLocation1.WindBasedHazard}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -555,7 +567,9 @@ const HomePage = (props)=> {
       )}
     </div>
                       </div>
-                      <div className="HomePage-left-bottom-output1-box container-flex"></div>
+                      <div className="HomePage-left-bottom-output1-box container-flex">
+                        <h1>{weatherLocation2.WindBasedHazard2}</h1>
+                      </div>
                     </div>
                   </div>
                 </div>

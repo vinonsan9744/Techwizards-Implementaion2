@@ -180,7 +180,12 @@ html {
   font-weight: bolder;
 }
 
-
+.HomePage-left-bottom-output1-box ,  h1{
+  color: #e4f2e7;
+  font-weight: bolder;
+  font-size: 1.2rem;
+  margin-top: 2%;
+}
 
 /* home page left top style end  */
 
