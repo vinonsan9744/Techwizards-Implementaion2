@@ -36,7 +36,7 @@ const HomePage = (props)=> {
   const [NextHazardIndex, setNextHazardIndex] = useState(0);
   const currentHazard = hazards[currentHazardIndex];
   const nextHazard = nexthazards[NextHazardIndex];
-  
+  // const [locationRoute,setLocationRoute]=useState('Location Route');
 
 
   // Helper function for visibility status
@@ -51,8 +51,8 @@ const HomePage = (props)=> {
   };
 
   const WindHazard = (wind_speed) => {
-    if (wind_speed > 6) {
-      return "Hazard occur";
+    if (wind_speed > 30) {
+      return "High winds may cause fallen trees on tracks";
     } else {
       return "No Hazard";
     }
@@ -446,11 +446,11 @@ const HomePage = (props)=> {
       ) : (
         <div>
           {/* Simple line output for hazard area */}
-          <p>{getHazardArea(currentHazard.HazardType)}</p>
+          <p>{getNextHazardArea(hazards.HazardType)}</p>
         </div>
       )}
     </div>
-</div>
+                    </div>
 
                       <div className="HomePage-left-bottom-output1-box container-flex">
                       {weatherLocation1.WindBasedHazard}
@@ -465,6 +465,9 @@ const HomePage = (props)=> {
           <div className="HomePage-middle-main-box col-sm-12 col-md-4 col-lg-4 col-xl-4">
                 <div className="HomePage-middle-main-content-box container-flex">
                   <div className="row">
+                    <div className="HomePage-middle-main-top-content-box container-flex">
+                    <p> {valuelocation.state?.selectedLocationType +' ' +'Route' || 'not selected'}  </p>
+                    </div>
                     <div className="HomePage-middle-main-top-content-box container-flex">
                     <p> {valuelocation.state?.startLocation || 'not selected'} </p>
                     <FaRoute />
