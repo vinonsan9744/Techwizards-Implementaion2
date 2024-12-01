@@ -86,7 +86,7 @@ function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
       
       // Delay navigation by 5 seconds (5000 milliseconds)
       setTimeout(() => {
-        navigate("/homepage",{replace:true,state:{startLocation,endLocation}});
+        navigate("/homepage",{replace:true,state:{startLocation,endLocation,selectedLocationType}});
       }, 2000);
       
     } else {

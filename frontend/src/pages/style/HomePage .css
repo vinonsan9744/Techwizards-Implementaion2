@@ -366,12 +366,13 @@ height: 60%;
 .HomePage-middle-main-top-content-box{
   display: flex;
   background-color: #e4f2e7;
-  height: 10%;
+  height: 6%;
   width: 96%;
   margin: 2%;
   border-radius: 16px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
 }
 
 .HomePage-middle-main-top-content-box p {
@@ -399,7 +400,7 @@ height: 60%;
 
 .HomePage-middle-main-bottom-content-box{
   background-color: #e4f2e7;
-  height: 40%;
+  height: 38%;
   width: 96%;
   margin: 2%;
   border-radius: 16px;
