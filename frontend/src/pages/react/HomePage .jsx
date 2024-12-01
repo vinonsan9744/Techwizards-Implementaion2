@@ -436,7 +436,7 @@ const HomePage = (props)=> {
                   <div className="HomePage-left-bottom-box container-flex">
                     <div className="row">
                     <div className="HomePage-left-bottom-output1-box container-flex">
-                    
+                    <h1>vino</h1>
                     </div>
 
                       <div className="HomePage-left-bottom-output1-box container-flex">
