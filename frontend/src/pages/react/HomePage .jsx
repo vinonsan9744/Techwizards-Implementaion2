@@ -436,20 +436,7 @@ const HomePage = (props)=> {
                   <div className="HomePage-left-bottom-box container-flex">
                     <div className="row">
                     <div className="HomePage-left-bottom-output1-box container-flex">
-                    <div>
-      {loading ? (
-        <p>Loading hazards...</p>
-      ) : error ? (
-        <p>{error}</p>
-      ) : hazards.length === 0 ? (
-        <p>No hazards found for this location.</p>
-      ) : (
-        <div>
-          {/* Simple line output for hazard area */}
-          <p>{getNextHazardArea(hazards.HazardType)}</p>
-        </div>
-      )}
-    </div>
+                    
                     </div>
 
                       <div className="HomePage-left-bottom-output1-box container-flex">
