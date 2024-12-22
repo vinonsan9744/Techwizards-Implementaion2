@@ -47,40 +47,45 @@ export const countHazards = async (req, res) => {
   };
   
 
-export const getAllHazards = async (req, res) => {
-  try {
+  export const getAllHazards = async (req, res) => {
+    try {
       const hazards = await LocomotivePilotHazardModel.findAll({
-          include: [
-              {
-                  model: LocomotivePilotModel,
-                  attributes: ['locomotiveName', 'locomotivePhoneNo'] // Only include specific fields
-              },
-              {
-                model: LocationModel,
-                attributes: ['locationName', 'locationContactNumber'] // Include specific fields from Location
-            }
-          ]
+        include: [
+          {
+            model: LocomotivePilotModel,
+            attributes: ['locomotiveName', 'locomotivePhoneNo'],
+          },
+          {
+            model: LocationModel,
+            attributes: ['locationContactNumber'],
+          },
+        ],
       });
-
-      for (const hazard of hazards) {
-        const location = await LocationModel.findOne({
-            where: { locationName: hazard.locationName },
-            attributes: ['locationName', 'locationContactNumber']
-        });
-        hazard.setDataValue('locationDetails', location);
-    }
-
-    return res.status(200).json({ success: true, hazards });
-  } catch (error) {
+  
+      const formattedHazards = hazards.map((hazard) => {
+        return {
+          HazardID: hazard.HazardID,
+          locomotivePilotID: hazard.locomotivePilotID,
+          locationName: hazard.locationName,
+          HazardType: hazard.HazardType,
+          Date: hazard.Date,
+          description: hazard.description,
+          locomotiveName: hazard.LocomotivePilot?.locomotiveName || null,
+          locomotivePhoneNo: hazard.LocomotivePilot?.locomotivePhoneNo || null,
+          locationContactNumber: hazard.Location?.locationContactNumber || null,
+        };
+      });
+  
+      return res.status(200).json({ success: true, hazards: formattedHazards });
+    } catch (error) {
       console.error('Error fetching hazards:', error.message || error);
       return res.status(500).json({ error: 'Failed to retrieve hazards', details: error.message });
-  }
-};
+    }
+  };
 
-
-export const getHazardById = async (req, res) => {
+  export const getHazardById = async (req, res) => {
     const { HazardID } = req.params; // Get the hazard ID from request parameters
-  
+
     try {
         // Fetch the hazard based on the hazardId
         const hazard = await LocomotivePilotHazardModel.findOne({
@@ -92,27 +97,57 @@ export const getHazardById = async (req, res) => {
                 },
                 {
                     model: LocationModel,
-                    attributes: ['locationName', 'locationContactNumber'] // Include specific fields from Location
+                    attributes: ['locationContactNumber'] // Include specific fields from Location
                 }
             ]
         });
-  
+
         // Check if the hazard is found
         if (!hazard) {
             return res.status(404).json({ error: 'Hazard not found' });
         }
-  
-        // Optionally, you can add location details separately if necessary
-        const location = await LocationModel.findOne({
-            where: { locationName: hazard.locationName },
-            attributes: ['locationName', 'locationContactNumber']
-        });
-        hazard.setDataValue('locationDetails', location);
-  
-        return res.status(200).json({ success: true, hazard });
+
+        // Format the hazard to match the desired output
+        const formattedHazard = {
+            HazardID: hazard.HazardID,
+            locomotivePilotID: hazard.locomotivePilotID,
+            locationName: hazard.locationName,
+            HazardType: hazard.HazardType,
+            Date: hazard.Date,
+            description: hazard.description,
+            
+            locomotiveName: hazard.LocomotivePilot?.locomotiveName || null,
+            locomotivePhoneNo: hazard.LocomotivePilot?.locomotivePhoneNo || null,
+            locationContactNumber: hazard.Location?.locationContactNumber || null,
+        };
+
+        return res.status(200).json({ success: true, hazard: formattedHazard });
     } catch (error) {
         console.error('Error fetching hazard:', error.message || error);
         return res.status(500).json({ error: 'Failed to retrieve hazard', details: error.message });
+    }
+};
+
+  
+
+  // Delete a hazard by ID
+export const deleteHazard = async (req, res) => {
+    const { HazardID } = req.params; // Get the hazard ID from the request parameters
+  
+    try {
+      // Find and delete the hazard by ID
+      const deletedHazard = await LocomotivePilotHazardModel.destroy({
+        where: { HazardID: HazardID }
+      });
+  
+      if (!deletedHazard) {
+        return res.status(404).json({ success: false, message: "Hazard not found" });
+      }
+  
+      return res.status(200).json({ success: true, message: "Hazard deleted successfully" });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: error.message || "Internal server error" });
     }
   };
   

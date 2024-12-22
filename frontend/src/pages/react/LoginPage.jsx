@@ -158,7 +158,7 @@ function LoginPage() {
                 </Modal.Header>
                 <Modal.Body>{error}</Modal.Body>
                 <Modal.Footer>
-                  <Button variant="secondary" onClick={handleCloseErrorModal}>
+                  <Button variant="danger" onClick={handleCloseErrorModal}>
                     Close
                   </Button>
                 </Modal.Footer>
