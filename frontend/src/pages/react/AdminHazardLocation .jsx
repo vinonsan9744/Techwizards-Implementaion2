@@ -246,11 +246,17 @@ function AdminHazardLocation() {
                 <div className="right-admin-hazard-location-possible-hazards-title-box container-flex">
                   <h3 className="right-admin-hazard-location-possible-hazards-title">Possible Hazards</h3>
                 </div>
-                {hazards.map((hazard, index) => (
-                  <div key={index} className="right-admin-hazard-location-possible-hazards-content-box container-flex">
-                    <h2 className="right-admin-hazard-location-possible-hazards-content">{hazard.HazardType}</h2>
-                  </div>
-                ))}
+                {hazards.length > 0 ? (
+                      hazards.map((hazard, index) => (
+                        <div key={index} className="hazard-location-possible-hazard-box2 container-flex">
+                          <h2 className="hazard-location-possible-content-heading">{hazard.HazardType}</h2>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="hazard-location-possible-hazard-box2 container-flex">
+                        <h2 className="hazard-location-possible-content-heading">No hazards</h2>
+                      </div>
+                    )}
               </div>
             </div>
           </div>

@@ -81,3 +81,47 @@ html {
   max-height: 200px; /* Adjust the height as needed */
   overflow-y: auto;
 }
+.UpdateHazardDetails-input-dropdown-box{
+  margin-bottom: 2%;
+  width: 100%;
+  background-color: #387373;
+  color: #e4f2e7;
+  margin-top: 2%;
+  border-radius: 2vh;
+}
+#UpdateHazardDetails-input-group-dropdown-2{
+  background-color: #387373;
+  color: #e4f2e7;
+  font-size: 1.2rem;
+  font-weight: bolder;
+}
+#UpdateHazardDetails-input{
+  border: .5vh solid #387373;
+  font-size: 1.2rem;
+  color: #387373;
+  font-weight: bolder;}
+
+  
+#UpdateHazardDetails-input-group-dropdown-2{
+  background-color: #387373;
+  color: #e4f2e7;
+  font-size: 1.2rem;
+  font-weight: bolder;
+}
+#UpdateHazardDetails-input{
+  border: .5vh solid #387373;
+  font-size: 1rem;
+  color: #387373;
+  font-weight: bolder;
+}
+.UpdateHazardDetails-input-dropdown-box{
+  width: 100%;
+  margin-top: 3%;
+  
+}
+.UpdateHazardDetails-input-text-box{
+  border: .5vh solid #387373;
+  font-size: 1rem;
+  color: #387373;
+  font-weight: bolder;
+}

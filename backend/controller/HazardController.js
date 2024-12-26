@@ -42,3 +42,21 @@ export const getHazardsByLocation = async (req, res) => {
         return res.status(500).json({ "error": "Internal server error" });
     }
 }
+
+// DELETE - Remove all hazards
+export const deleteAllHazards = async (req, res) => {
+    try {
+        const deletedCount = await HazardModel.destroy({
+            where: {}, // No condition means delete all records
+        });
+
+        if (deletedCount === 0) {
+            return res.status(404).json({ "error": "No hazards found to delete" });
+        }
+
+        return res.status(200).json({ message: `${deletedCount} hazards deleted successfully` });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ "error": "Internal server error" });
+    }
+}

@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import Dropdown from 'react-bootstrap/Dropdown';
+import DropdownButton from 'react-bootstrap/DropdownButton';
 import Button from 'react-bootstrap/Button';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
@@ -29,7 +30,14 @@ function UpdateHazard() {
   const [selectedLocationName, setSelectedLocationName] = useState('');
   // const [locationHazards, setLocationHazards] = useState([]);
   const [selectedHazard, setSelectedHazard] = useState('');
- 
+  const [pilotIds, setPilotIds] = useState([]);
+  const [selectedPilotId, setSelectedPilotId] = useState('');
+  const handlePilotIdSelect = (id) => {
+    setSelectedPilotId(id);
+  };
+
+
+
   // Fetch location types on component mount
   useEffect(() => {
     const fetchLocationTypes = async () => {
@@ -159,7 +167,7 @@ function UpdateHazard() {
       setError("Hazard Type Field Is Empty.");
       setShowErrorModal(true);
       return;
-      
+
     } else if (formData.locomotivePilotID.trim() === "") {
       setError("Locomotive Pilot ID Field Is Empty.");
       setShowErrorModal(true);
@@ -191,6 +199,17 @@ function UpdateHazard() {
 
     }
   };
+  useEffect(() => {
+    const fetchPilotIds = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/locomotivePilot/getAll');
+        setPilotIds(response.data.map(pilot => pilot.locomotivePilotID));
+      } catch (error) {
+        console.error('Error fetching pilot IDs:', error);
+      }
+    };
+    fetchPilotIds();
+  }, [selectedPilotId]);
 
 
   const handleCloseErrorModal = () => setShowErrorModal(false);
@@ -218,7 +237,7 @@ function UpdateHazard() {
                       aria-label="Text input with dropdown button"
                       id="update-hazard-input"
                       value={selectedDate ? selectedDate.format('YYYY-MM-DD HH:mm') : ''}
-                      // readOnly
+                    // readOnly
                     />
                   </FloatingLabel>
                   <Dropdown show={showCalendar} onToggle={toggleCalendar} align="end">
@@ -251,7 +270,7 @@ function UpdateHazard() {
                       aria-label="Text input with dropdown button"
                       id="update-hazard-input"
                       value={selectedLocationType}
-                      // readOnly
+                    // readOnly
                     />
                   </FloatingLabel>
                   <Dropdown align="end">
@@ -348,25 +367,55 @@ function UpdateHazard() {
 
             <div className="update-hazard-button-box">
               <Form onSubmit={handleSubmit}>
+                {/* Input Group with Dropdown */}
+                <InputGroup className="UpdateHazardDetails-input-dropdown-box mb-3">
+                  <FloatingLabel controlId="floatinglocomotivePilotID" label="Pilot ID">
+                    <Form.Control
+                      id="UpdateHazardDetails-input"
+                      type="text"
+                      name="Pilot ID"
+                      placeholder="locomotivePilotID"
+                      value={formData.locomotivePilotID}
+                      onChange={handleChange}
+                      className="hazard-RegisterPage-input-text-box"
+                      readOnly // Ensures manual editing is disabled
+                    />
+                  </FloatingLabel>
 
+                  {/* Dropdown for LocomotivePilotID */}
+                  <DropdownButton
+                    variant="outline-secondary"
+                    title="LP Id"
+                    id="input-group-dropdown-2"
+                  >
+                    <div className="dropdown-menu-scrollable">
+                      {pilotIds.map((id) => (
+                        <Dropdown.Item
+                          key={id}
+                          onClick={() =>
+                            handleChange({ target: { name: 'locomotivePilotID', value: id } })
+                          }
+                        >
+                          {id}
+                        </Dropdown.Item>
+                      ))}
+                    </div>
+                  </DropdownButton>
+                </InputGroup>
 
-                <Form.Floating className="mb-3">
-                  <Form.Control
-                    id="floatinglocomotivePilotID"
-                    type="locomotivePilotID"
-                    name="locomotivePilotID"
-                    placeholder="locomotivePilotID"
-                    value={formData.locomotivePilotID}
-                    onChange={handleChange}
-                    className="hazard-RegisterPage-input-text-box"
-                  />
-                  <label htmlFor="lpid">LocomotivePilotId</label>
-                </Form.Floating>
-
-                <Button type="submit" variant="outline-dark" className='update-hazard-button' >Submit</Button>{' '}
-                <Button variant="outline-dark" className='update-hazard-button' onClick={() => navigate('/homepage')}>Back</Button>{' '}
-
+                {/* Submit and Back Buttons */}
+                <Button type="submit" variant="outline-dark" className="update-hazard-button">
+                  Submit
+                </Button>{' '}
+                <Button
+                  variant="outline-dark"
+                  className="update-hazard-button"
+                  onClick={() => navigate('/homepage')}
+                >
+                  Back
+                </Button>{' '}
               </Form>
+
 
 
             </div>

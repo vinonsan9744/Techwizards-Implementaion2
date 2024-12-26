@@ -161,19 +161,21 @@ function AdminViewHazardLocation() {
               <h1 className="hazard-location-heading">Possible Hazard</h1>
             </div>
 
-            <div className="hazard-location-possible-main-box container-flex vh-30">
-              <div className="row">
-                <div className="hazard-location-possible-header-box container-flex">
-                  <h2 className="hazard-location-possible-header-heading">{selectedLocationName}</h2>
-                </div>
-
-                {hazards.map((hazard, index) => (
-                  <div key={index} className="hazard-location-possible-content-box1 container-flex">
-                    <h2 className="hazard-location-possible-content-heading">{hazard.HazardType}</h2>
+            <div className="hazard-location-possible-hazard-box container-flex">
+                  <div className="row">
+                    {hazards.length > 0 ? (
+                      hazards.map((hazard, index) => (
+                        <div key={index} className="hazard-location-possible-hazard-box2 container-flex">
+                          <h2 className="hazard-location-possible-content-heading">{hazard.HazardType}</h2>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="hazard-location-possible-hazard-box2 container-flex">
+                        <h2 className="hazard-location-possible-content-heading">No hazards</h2>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
           </div>
         </div>
       </div>
