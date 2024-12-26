@@ -55,7 +55,7 @@ function ApproveHazard() {
   const handleCloseModal = () => {
     setShowModal(false);
   };
-//markasread function
+
   const markAsRead = (HazardID) => {
     if (!HazardID) {
       console.error("hazardID is missing!");
