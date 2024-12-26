@@ -13,9 +13,9 @@ import axios from 'axios';
 import Modal from 'react-bootstrap/Modal';
 
 function ApproveHazard() {
+  const [notifications, setNotifications] = useState([]);
 
   const [hazardCount, setHazardCount] = useState(0);
-  const [notifications, setNotifications] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [inputLocation, setInputLocation] = useState('');
@@ -24,54 +24,54 @@ function ApproveHazard() {
   const [errorMessage, setErrorMessage] = useState('');
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [locationHazards, setLocationHazards] = useState([]);
-  const [showConfirmModal, setShowConfirmModal] = useState(false); 
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showDeclineConfirmModal, setShowDeclineConfirmModal] = useState(false);
   const [selectedHazardId, setSelectedHazardId] = useState(null);
   const navigate = useNavigate();
 
-  
-
- useEffect(() => {
-    const fetchHazardCount = async () => {
-      try {
-        const response = await axios.get("http://localhost:8000/pilotHazard/countHazards");
-        const count = response.data.count; 
-        setHazardCount(count);
-        if (count > 0) {
-          // Update notifications based on the exact count from the database
-          const newNotifications = Array.from({ length: count }, (_, index) => `Report ${index + 1}`);
-          setNotifications(newNotifications);
+  useEffect(() => {
+    axios
+      .get('http://localhost:8000/pilotHazard/getHazard')
+      .then(response => {
+        const { data } = response;
+        if (data && Array.isArray(data.hazards)) {
+          setNotifications(data.hazards);
+          setHazardCount(data.hazards.length);
+        } else {
+          console.error('Expected an array in response.data.hazards but received:', data);
         }
-      } catch (error) {
-        console.error("Error fetching hazard count:", error);
-        setNotifications((prevNotifications) => [
-          ...prevNotifications,
-          "Failed to fetch hazard count"
-        ]);
-      }
-    };
-    fetchHazardCount();
+      })
+      .catch(error => {
+        console.error('Error fetching hazard data:', error);
+      });
   }, []);
-  
+
+
+
 
   const handleNotificationClick = () => {
     setShowModal(true);
   };
-
   const handleCloseModal = () => {
     setShowModal(false);
   };
 
-  const markAsRead = async (hazardId) => {
-    try {
-      const hazardResponse = await axios.get(`http://localhost:8000/pilotHazard/getHazardById/${hazardId}`);
-      setSelectedNotification(hazardResponse.data);
-      setSelectedHazardId(hazardId);
-      setShowModal(false);
-    } catch (error) {
-      console.error('Error fetching hazard or pilot details:', error);
+  const markAsRead = (HazardID) => {
+    if (!HazardID) {
+      console.error("hazardID is missing!");
+      return;
     }
+    axios.get(`http://localhost:8000/pilotHazard/getHazardById/${HazardID}`)
+      .then(response => {
+        console.log("Hazard details:", response.data);
+        setSelectedHazardId(HazardID);
+      setShowModal(false);
+      })
+      .catch(error => {
+        console.error("Error fetching hazard or pilot details:", error);
+      });
   };
+
 
   const handleAcceptClick = async (type, value) => {
     if (type === 'hazard') {
@@ -86,23 +86,23 @@ function ApproveHazard() {
     const day = date.getUTCDate();
     const monthIndex = date.getUTCMonth();
     const year = date.getUTCFullYear();
-    
+
     const monthNames = [
-      "January", "February", "March", "April", "May", "June", 
+      "January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"
     ];
-  
+
     const month = monthNames[monthIndex];
-    
+
     const hours = date.getUTCHours();
     const minutes = date.getUTCMinutes();
-    
+
     const period = hours >= 12 ? 'PM' : 'AM';
     const formattedHours = hours % 12 || 12;
     const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-    
+
     const time = `${formattedHours}:${formattedMinutes} ${period}`;
-  
+
     return { day, month, year, time };
   };
 
@@ -125,27 +125,27 @@ function ApproveHazard() {
     try {
       // Perform the POST request
       const postResponse = await axios.post('http://localhost:8000/hazard/addHazard', {
-        locationName: inputLocation,
-        hazardType: inputHazard
+        LocationName: inputLocation,
+        HazardType: inputHazard
       });
       console.log('POST response:', postResponse.data); // Log response data
-  
+
       // Check if a hazard ID is selected for deletion
       if (selectedHazardId) {
         // Perform the DELETE request
-        await axios.delete(`http://localhost:8000/pilotHazard/getHazardById/${selectedHazardId}`);
+        await axios.delete(`http://localhost:8000/pilotHazard/deleteHazardById/${selectedHazardId}`);
         console.log('DELETE successful'); // Log success message
       }
-  
+
       // Update state after successful operations
       setSuccessMessage('Hazard data saved successfully and hazard deleted if applicable!');
       setErrorMessage('');
       setInputLocation('');
       setInputHazard('');
-  
+
       // Navigate to a different page if needed
       navigate('/adminhomepage');
-  
+
     } catch (error) {
       console.error('Operation failed:', error);
       if (error.response && error.response.data && error.response.data.error) {
@@ -157,7 +157,7 @@ function ApproveHazard() {
       setShowErrorModal(true); // Show error modal
     }
   };
-  
+
 
   const handleDecline = () => {
     if (!selectedHazardId) {
@@ -170,12 +170,12 @@ function ApproveHazard() {
   const handleDeclineConfirm = async () => {
     setShowDeclineConfirmModal(false);
     try {
-      await axios.delete(`http://localhost:8000/pilotHazard/getHazardById/${selectedHazardId}`);
+      await axios.delete(`http://localhost:8000/pilotHazard/deleteHazardById/${selectedHazardId}`);
       setSuccessMessage('Hazard deleted successfully!');
-      setNotifications(notifications.filter(notification => notification.hazardID !== selectedHazardId));
+      setNotifications(notifications.filter(notification => notification.HazardID !== selectedHazardId));
       setSelectedHazardId(null);
       navigate('/adminhomepage');
-      
+
     } catch (error) {
       console.error('Error deleting hazard:', error);
       setErrorMessage('Failed to delete hazard. Please try again.');
@@ -183,7 +183,7 @@ function ApproveHazard() {
   };
 
   const handleDeclineCancel = () => setShowDeclineConfirmModal(false);
-  
+
 
   const handleCloseErrorModal = () => setShowErrorModal(false);
 
@@ -220,23 +220,23 @@ function ApproveHazard() {
                     <div className="ApproveHazard-detail-box container-flex">
                       <div className="ApproveHazard-detail-name-box container-flex">
                         <p>Name:</p>
-                        <p>{selectedNotification && `${selectedNotification.locomotivePilotName}`}</p>
+                        <p>{selectedNotification && `${selectedNotification.locomotiveName}`}</p>
                       </div>
                       <div className="ApproveHazard-detail-loco-phone-box container-flex">
-                      <p>LP Phone No:</p>
-                      <p>{selectedNotification && `${selectedNotification.locomotivePilotPhoneNo}`}</p>
-                       
+                        <p>LP Phone No:</p>
+                        <p>{selectedNotification && `${selectedNotification.locomotivePhoneNo}`}</p>
+
                       </div>
                       <div className="ApproveHazard-detail-station-phone-box container-flex">
-                      <p>Station Phone No:</p>
-                      <p>{selectedNotification && `${selectedNotification.locationContactNumber}`}</p>
+                        <p>Station Phone No:</p>
+                        <p>{selectedNotification && `${selectedNotification.locationContactNumber}`}</p>
                       </div>
                     </div>
                     <div className="ApproveHazard-description-box container-flex">
                       <p>
                         {selectedNotification && (() => {
                           const { day, month, year, time } = formatDate(selectedNotification.time);
-                          return `IN ${selectedNotification.locationName}, On ${day} ${month} ${year} at ${time}, ${selectedNotification.hazardType} hazard was reported`;
+                          return `IN ${selectedNotification.locationName}, On ${day} ${month} ${year} at ${time}, ${selectedNotification.HazardType} hazard was reported`;
                         })()}
                       </p>
                     </div>
@@ -247,13 +247,13 @@ function ApproveHazard() {
                             <GiElephant />
                           </div>
                           <div className="ApproveHazard-hazard-middle-input-box">
-                            <p>{selectedNotification && selectedNotification.hazardType}</p>
+                            <p>{selectedNotification && selectedNotification.HazardType}</p>
                           </div>
                           <div className="ApproveHazard-hazard-right-button-box">
                             <Button
                               className="ApproveHazard-hazard-right-button"
                               variant="outline-dark"
-                              onClick={() => handleAcceptClick('hazard', selectedNotification.hazardType)}
+                              onClick={() => handleAcceptClick('hazard', selectedNotification.HazardType)}
                             >
                               Accept
                             </Button>
@@ -303,7 +303,7 @@ function ApproveHazard() {
                   id="ah-input-group-dropdown-2"
                   align="end"
                   className="ah-dropdown-box-button"
-                 
+
                 >
                   <div className="ApproveHazard-hazard-right-hazard-icon">
                     <FaLocationDot />
@@ -314,12 +314,12 @@ function ApproveHazard() {
               <div className="ApproveHazard-hazard-icon-box2 container-flex">
                 {locationHazards.map((hazard, index) => (
                   <div key={index} className="ApproveHazard-hazard-content container-flex">
-                    <h2 className="ApproveHazard-hazard-icon">{hazard.hazardType}</h2>
+                    <h2 className="ApproveHazard-hazard-icon">{hazard.HazardType}</h2>
                   </div>
                 ))}
               </div>
 
-             
+
 
               <InputGroup className="ah-input-dropdown-box ">
                 <Form.Control
@@ -336,7 +336,7 @@ function ApproveHazard() {
                   id="ah-input-group-dropdown-2"
                   align="end"
                   className="ah-dropdown-box-button"
-                  
+
                 >
                   <div className="ApproveHazard-hazard-right-hazard-icon">
                     <GiElephant />
@@ -355,7 +355,9 @@ function ApproveHazard() {
                   Approve
                 </Button>
               </div>
+            </form>
 
+            <form onSubmit={handleDecline}>
               <div className="ah-box button-box container-flex">
                 <Button
                   variant="outline-dark"
@@ -365,9 +367,6 @@ function ApproveHazard() {
                   Decline
                 </Button>
               </div>
-            </form>
-
-            <form onSubmit={handleDecline}>
 
             </form>
 
@@ -394,7 +393,7 @@ function ApproveHazard() {
             <Button variant="success" onClick={() => setSuccessMessage('')}>
               Close
             </Button>
-            
+
           </Modal.Footer>
         </Modal>
       )}
@@ -421,7 +420,14 @@ function ApproveHazard() {
           {notifications.map((notification, index) => (
             <div key={index} className="notification-item">
               <p>{`Hazard Reporting ${index + 1}`}</p>
-              <Button variant="outline-success" onClick={() => markAsRead(notification.hazardID)}>
+              <Button
+                variant="outline-success"
+                onClick={() => {
+                  setSelectedNotification(notification); // Set the selected notification when clicked
+                  // handleViewReport(notification.HazardID); // Optional: View report logic (if needed)
+                  markAsRead(notification.HazardID);
+                }}
+              >
                 View Report
               </Button>
             </div>
@@ -447,19 +453,19 @@ function ApproveHazard() {
 
 
       <Modal show={showDeclineConfirmModal} onHide={handleDeclineCancel}>
-  <Modal.Header closeButton>
-    <Modal.Title>Confirm Decline</Modal.Title>
-  </Modal.Header>
-  <Modal.Body>Are you sure you want to delete this hazard?</Modal.Body>
-  <Modal.Footer>
-    <Button variant="danger" onClick={handleDeclineCancel}>
-      Cancel
-    </Button>
-    <Button variant="success" onClick={handleDeclineConfirm}>
-      Confirm
-    </Button>
-  </Modal.Footer>
-</Modal>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Decline</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to delete this hazard?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="danger" onClick={handleDeclineCancel}>
+            Cancel
+          </Button>
+          <Button variant="success" onClick={handleDeclineConfirm}>
+            Confirm
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
     </>
   );
