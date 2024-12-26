@@ -1,118 +1,141 @@
-import { LocomotivePilotHazardModel, LocomotivePilotModel,LocationModel } from "../postgres/postgres.js";
+import { LocomotivePilotHazardModel, LocomotivePilotModel, LocationModel } from "../postgres/postgres.js";
 
-// Add a new hazard
 export const addHazard = async (req, res) => {
-  const { locomotivePilotID, locationName, HazardType, Date, description } = req.body;
-
-  try {
+    const { locomotivePilotID, locationName, HazardType, Date, description } = req.body;
+  
+    try {
+      // Validation
+      if (!locomotivePilotID || !locationName || !HazardType || !Date) {
+        return res.status(400).json({ error: "All fields are required." });
+      }
+  
+      // Check if locomotivePilotID exists
+      const pilot = await LocomotivePilotModel.findByPk(locomotivePilotID);
+      if (!pilot) {
+        return res.status(404).json({ error: "Locomotive Pilot not found." });
+      }
+  
+      // Check if locationName exists
+      const location = await LocationModel.findOne({ where: { locationName } });
+      if (!location) {
+        return res.status(404).json({ error: "Location not found." });
+      }
+  
+      // Create the hazard
       const newHazard = await LocomotivePilotHazardModel.create({
-          locomotivePilotID,
-          locationName,
-          HazardType,
-          Date,
-          description
+        locomotivePilotID,
+        locationName,
+        HazardType,
+        Date,
+        description,
       });
-      return res.status(201).json({ success: true, message: "Hazard added successfully", newHazard });
-  } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: error.message || "Internal server error" });
-  }
-};
+  
+      return res.status(201).json({
+        success: true,
+        message: "Hazard added successfully",
+        newHazard,
+      });
+    } catch (error) {
+      console.error("Error adding hazard:", error);
+      return res.status(500).json({
+        error: "Internal server error",
+        details: error.message || error,
+      });
+    }
+  };
 
 
-
-// Get all hazards
+  
 export const getRecordHazards = async (req, res) => {
-    try {
-      const hazards = await LocomotivePilotHazardModel.findAll(); // Fetch all hazards
-      return res.status(200).json({ success: true, hazards }); // Return all hazards
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: error.message || "Internal server error" });
-    }
-  };
-  
-// Count all hazards
-export const countHazards = async (req, res) => {
-    try {
-        // Use the count() function to get the number of records in LocomotivePilotHazardModel
-        const hazardCount = await LocomotivePilotHazardModel.count();
-        
-        // Return the count as a JSON response
-        return res.status(200).json({ success: true, count: hazardCount });
-    } catch (error) {
-        console.error('Error counting hazards:', error.message || error);
-        return res.status(500).json({ error: 'Failed to count hazards', details: error.message });
-    }
-  };
-  
-
-export const getAllHazards = async (req, res) => {
   try {
-      const hazards = await LocomotivePilotHazardModel.findAll({
-          include: [
-              {
-                  model: LocomotivePilotModel,
-                  attributes: ['locomotiveName', 'locomotivePhoneNo'] // Only include specific fields
-              },
-              {
-                model: LocationModel,
-                attributes: ['locationName', 'locationContactNumber'] // Include specific fields from Location
-            }
-          ]
-      });
-
-      for (const hazard of hazards) {
-        const location = await LocationModel.findOne({
-            where: { locationName: hazard.locationName },
-            attributes: ['locationName', 'locationContactNumber']
-        });
-        hazard.setDataValue('locationDetails', location);
-    }
-
+    const hazards = await LocomotivePilotHazardModel.findAll();
     return res.status(200).json({ success: true, hazards });
   } catch (error) {
-      console.error('Error fetching hazards:', error.message || error);
-      return res.status(500).json({ error: 'Failed to retrieve hazards', details: error.message });
+    console.error("Error fetching hazards:", error);
+    return res.status(500).json({
+      error: "Internal server error",
+      details: error.message || error,
+    });
   }
 };
 
 
+// Count all hazards
+export const countHazards = async (req, res) => {
+  try {
+    const hazardCount = await LocomotivePilotHazardModel.count();
+    return res.status(200).json({ success: true, count: hazardCount });
+  } catch (error) {
+    console.error('Error counting hazards:', error.message || error);
+    return res.status(500).json({ error: 'Failed to count hazards', details: error.message });
+  }
+};
+
+// Get all hazards with associated details
+export const getAllHazards = async (req, res) => {
+    try {
+      const hazards = await LocomotivePilotHazardModel.findAll({
+        include: [
+          {
+            model: LocomotivePilotModel,
+            as: "pilot",
+            attributes: ["locomotiveName", "locomotivePhoneNo"],
+          },
+          {
+            model: LocationModel,
+            as: "location",
+            attributes: ["locationName", "locationContactNumber"],
+          },
+        ],
+      });
+  
+      return res.status(200).json({ success: true, hazards });
+    } catch (error) {
+      console.error("Error fetching hazards:", error);
+      return res.status(500).json({
+        error: "Internal server error",
+        details: error.message || error,
+      });
+    }
+  };
+  
+
+// Get a hazard by ID
 export const getHazardById = async (req, res) => {
-    const { HazardID } = req.params; // Get the hazard ID from request parameters
+    const { HazardID } = req.params;
   
     try {
-        // Fetch the hazard based on the hazardId
-        const hazard = await LocomotivePilotHazardModel.findOne({
-            where: { HazardID: HazardID }, // Use the hazardId to find the specific hazard
-            include: [
-                {
-                    model: LocomotivePilotModel,
-                    attributes: ['locomotiveName', 'locomotivePhoneNo'] // Only include specific fields
-                },
-                {
-                    model: LocationModel,
-                    attributes: ['locationName', 'locationContactNumber'] // Include specific fields from Location
-                }
-            ]
-        });
+      if (!HazardID) {
+        return res.status(400).json({ error: "Hazard ID is required." });
+      }
   
-        // Check if the hazard is found
-        if (!hazard) {
-            return res.status(404).json({ error: 'Hazard not found' });
-        }
+      const hazard = await LocomotivePilotHazardModel.findOne({
+        where: { HazardID },
+        include: [
+          {
+            model: LocomotivePilotModel,
+            as: "pilot",
+            attributes: ["locomotiveName", "locomotivePhoneNo"],
+          },
+          {
+            model: LocationModel,
+            as: "location",
+            attributes: ["locationName", "locationContactNumber"],
+          },
+        ],
+      });
   
-        // Optionally, you can add location details separately if necessary
-        const location = await LocationModel.findOne({
-            where: { locationName: hazard.locationName },
-            attributes: ['locationName', 'locationContactNumber']
-        });
-        hazard.setDataValue('locationDetails', location);
+      if (!hazard) {
+        return res.status(404).json({ error: "Hazard not found." });
+      }
   
-        return res.status(200).json({ success: true, hazard });
+      return res.status(200).json({ success: true, hazard });
     } catch (error) {
-        console.error('Error fetching hazard:', error.message || error);
-        return res.status(500).json({ error: 'Failed to retrieve hazard', details: error.message });
+      console.error("Error fetching hazard:", error);
+      return res.status(500).json({
+        error: "Internal server error",
+        details: error.message || error,
+      });
     }
   };
   
