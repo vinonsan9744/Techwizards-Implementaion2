@@ -40,14 +40,15 @@ function LoginPage() {
       return;
     }
 
-    // Check for empty fields
-    if (id.trim() === "") {
+    if (id.trim() === "" && password.trim() === "") {
+      setError("ID and Password fields cannot be empty.");
+      setShowErrorModal(true);
+      return;
+    } else if (id.trim() === "") {
       setError("ID field cannot be empty.");
       setShowErrorModal(true);
       return;
-    }
-
-    if (password.trim() === "") {
+    } else if (password.trim() === "") {
       setError("Password field cannot be empty.");
       setShowErrorModal(true);
       return;
@@ -63,8 +64,8 @@ function LoginPage() {
         payload = { locomotivePilotID: id, password }; // Adjust payload for locomotive pilot
       } else if (selectedOption === "option2") {
         // Admin login endpoint
-        loginEndpoint = "http://localhost:4000/api/AdministrativeOfficer/login";
-        payload = { AD_ID: id, Password: password }; // Adjust payload for admin
+        loginEndpoint = "http://localhost:8000/admin/login";
+        payload = { AdminId: id, Password: password }; // Adjust payload for admin
       }
 
       const response = await axios.post(loginEndpoint, payload);
@@ -84,8 +85,9 @@ function LoginPage() {
         navigate("/adminhomepage");
       }
     } catch (error) {
-      // Handle error responses from backend
-      const errorMessage = error.response ? error.response.data.error : "Something went wrong. Please try again.";
+      const errorMessage = error.response
+        ? error.response.data.error
+        : error.message || "Something went wrong. Please try again.";
       setError(errorMessage);
       setShowErrorModal(true);
     }
