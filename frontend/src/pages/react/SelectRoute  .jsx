@@ -3,35 +3,40 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import "./../style/SelectRoute .css";
-import DropdownButton from 'react-bootstrap/DropdownButton';
-import Dropdown from 'react-bootstrap/Dropdown';
-import Form from 'react-bootstrap/Form';
-import InputGroup from 'react-bootstrap/InputGroup';
-import Button from 'react-bootstrap/Button';
+import DropdownButton from "react-bootstrap/DropdownButton";
+import Dropdown from "react-bootstrap/Dropdown";
+import Form from "react-bootstrap/Form";
+import InputGroup from "react-bootstrap/InputGroup";
+import Button from "react-bootstrap/Button";
 import { MdAddLocationAlt } from "react-icons/md";
 import { FaRoute } from "react-icons/fa";
-import FloatingLabel from 'react-bootstrap/FloatingLabel';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import FloatingLabel from "react-bootstrap/FloatingLabel";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
+function SelectRoute({ onRouteSelected }) {
+  // Added onRouteSelected prop
   const [locationTypes, setLocationTypes] = useState([]);
-  const [selectedLocationType, setSelectedLocationType] = useState('');
+  const [selectedLocationType, setSelectedLocationType] = useState("");
   const [locationNames, setLocationNames] = useState([]);
-  const [startLocation, setStartLocation] = useState('');
-  const [endLocation, setEndLocation] = useState('');
-  const [routeImageUrl, setRouteImageUrl] = useState(''); // State for the route image URL
+  const [startLocation, setStartLocation] = useState("");
+  const [endLocation, setEndLocation] = useState("");
+  const [routeImageUrl, setRouteImageUrl] = useState(""); // State for the route image URL
   const navigate = useNavigate();
 
   // Fetch location types on component mount
   useEffect(() => {
     const fetchLocationTypes = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/location/getAll');
-        const uniqueTypes = [...new Set(response.data.map(location => location.locationType))];
+        const response = await axios.get(
+          "http://localhost:8000/location/getAll"
+        );
+        const uniqueTypes = [
+          ...new Set(response.data.map((location) => location.locationType)),
+        ];
         setLocationTypes(uniqueTypes);
       } catch (error) {
-        console.error('Error fetching location types:', error);
+        console.error("Error fetching location types:", error);
       }
     };
     fetchLocationTypes();
@@ -42,14 +47,18 @@ function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
     const fetchLocationNames = async () => {
       try {
         if (selectedLocationType) {
-          const response = await axios.get(`http://localhost:8000/location/getAll?locationType=${selectedLocationType}`);
+          const response = await axios.get(
+            `http://localhost:8000/location/getAll?locationType=${selectedLocationType}`
+          );
           const filteredNames = response.data
-            .filter(location => location.locationType === selectedLocationType)
-            .map(location => location.locationName);
+            .filter(
+              (location) => location.locationType === selectedLocationType
+            )
+            .map((location) => location.locationName);
           setLocationNames(filteredNames);
         }
       } catch (error) {
-        console.error('Error fetching location names:', error);
+        console.error("Error fetching location names:", error);
       }
     };
     fetchLocationNames();
@@ -59,9 +68,9 @@ function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
   const handleLocationTypeSelect = (type) => {
     setSelectedLocationType(type);
     setLocationNames([]);
-    setStartLocation('');
-    setEndLocation('');
-    setRouteImageUrl(''); // Clear route image when location type changes
+    setStartLocation("");
+    setEndLocation("");
+    setRouteImageUrl(""); // Clear route image when location type changes
   };
 
   // Handle selection of start location
@@ -74,37 +83,59 @@ function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
     setEndLocation(name);
   };
 
- 
-
   const handleStart = () => {
     if (startLocation && endLocation) {
-      let generatedImageUrl = selectedLocationType === "Northern" ? "/Northern.jpg"
-        : selectedLocationType === "Mannar" ? "/mannar_route_map.png"
-        : "/default_route_map.png";
-  
+      let generatedImageUrl =
+        selectedLocationType === "Northern"
+          ? "/Northern.jpg"
+          : selectedLocationType === "Costal"
+          ? "/Costal.jpg"
+          : selectedLocationType === "Kelani Valley"
+          ? "/Kelani_Valley.jpg"
+          : selectedLocationType === "Puttalam"
+          ? "/Puttalam.jpg"
+          : selectedLocationType === "Main"
+          ? "/Main.jpg"
+          : selectedLocationType === "Matale"
+          ? "/Matale.jpg"
+          : selectedLocationType === "Mannar"
+          ? "/Mannar.jpg"
+          : selectedLocationType === "Mihintale"
+          ? "/Mihintale.png"
+          : selectedLocationType === "Batticaloa"
+          ? "/Batticaloa.jpg"
+          : selectedLocationType === "Trincomalee"
+          ? "/Trincomalee.jpg"
+          : "/default_route_map.png";
+
       setRouteImageUrl(generatedImageUrl);
-      
+
       // Delay navigation by 5 seconds (5000 milliseconds)
       setTimeout(() => {
-        navigate("/homepage",{replace:true,state:{startLocation,endLocation,selectedLocationType}});
+        navigate("/homepage", {
+          replace: true,
+          state: { startLocation, endLocation, selectedLocationType },
+        });
       }, 2000);
-      
-    } else {
-      alert('Please select both start and end locations.');
+    } else if (!selectedLocationType) {
+      alert("Please select the required fields."); // Route not selected
+    } else if (!startLocation && !endLocation) {
+      alert("Please select both starting and ending locations."); // Both locations missing
+    } else if (!startLocation) {
+      alert("Please select the starting location."); // Start location missing
+    } else if (!endLocation) {
+      alert("Please select the ending location."); // End location missing
     }
   };
-  
-  
- 
 
   const handleRouteSelection = (routeDetails) => {
     console.log("Route selection triggered in App:", routeDetails); // Confirming data is passed
     setRouteDetails(routeDetails);
- };
- 
+  };
+
   // Handle click on Back button
   const handleBack = () => {
-    console.log('Back button clicked.');
+    console.log("Back button clicked.");
   };
 
   // Function to get the first and last updated locations
@@ -127,7 +158,11 @@ function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
 
           {/* Dropdown for location types */}
           <InputGroup className="select-route-input-dropdown-box">
-            <FloatingLabel controlId="floatingInputLocationName" label="Location Route" className="select-route-floating-label">
+            <FloatingLabel
+              controlId="floatingInputLocationName"
+              label="Location Route"
+              className="select-route-floating-label"
+            >
               <Form.Control
                 aria-label="Text input with dropdown button"
                 id="select-route-input"
@@ -144,7 +179,12 @@ function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
             >
               <div className="select-route-scrollable-dropdown-menu">
                 {locationTypes.map((type, index) => (
-                  <Dropdown.Item key={index} onClick={() => handleLocationTypeSelect(type)}>{type}</Dropdown.Item>
+                  <Dropdown.Item
+                    key={index}
+                    onClick={() => handleLocationTypeSelect(type)}
+                  >
+                    {type}
+                  </Dropdown.Item>
                 ))}
               </div>
             </DropdownButton>
@@ -152,14 +192,24 @@ function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
 
           {/* Dropdown for start location */}
           <InputGroup className="select-route-input-dropdown-box">
-            <FloatingLabel controlId="floatingInputStartLocation" label="Start Location" className="select-route-floating-label">
+            <FloatingLabel
+              controlId="floatingInputStartLocation"
+              label="Start Location"
+              className="select-route-floating-label"
+            >
               <Form.Control
                 aria-label="Text input with dropdown button"
                 id="select-route-input"
-                value={startLocation ? startLocation : (selectedLocationType ? "Select Start Location" : "Select Location Route First")}
+                value={
+                  startLocation
+                    ? startLocation
+                    : selectedLocationType
+                    ? "Select Start Location"
+                    : "Select Location Route First"
+                }
                 readOnly
                 autoComplete="off"
-                onChange={(event)=>setStartLocation(event.target.value)}
+                onChange={(event) => setStartLocation(event.target.value)}
               />
             </FloatingLabel>
             <DropdownButton
@@ -171,7 +221,12 @@ function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
             >
               <div className="select-route-scrollable-dropdown-menu">
                 {getFirstAndLastLocations(locationNames).map((name, index) => (
-                  <Dropdown.Item key={index}  onClick={() => handleStartLocationSelect(name)}>{name} </Dropdown.Item>
+                  <Dropdown.Item
+                    key={index}
+                    onClick={() => handleStartLocationSelect(name)}
+                  >
+                    {name}{" "}
+                  </Dropdown.Item>
                 ))}
               </div>
             </DropdownButton>
@@ -179,14 +234,24 @@ function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
 
           {/* Dropdown for end location */}
           <InputGroup className="select-route-input-dropdown-box">
-            <FloatingLabel controlId="floatingInputEndLocation" label="End Location" className="select-route-floating-label">
+            <FloatingLabel
+              controlId="floatingInputEndLocation"
+              label="End Location"
+              className="select-route-floating-label"
+            >
               <Form.Control
                 aria-label="Text input with dropdown button"
                 id="select-route-input"
-                value={endLocation ? endLocation : (selectedLocationType ? "Select End Location" : "Select Location Route First")}
+                value={
+                  endLocation
+                    ? endLocation
+                    : selectedLocationType
+                    ? "Select End Location"
+                    : "Select Location Route First"
+                }
                 readOnly
                 autoComplete="off"
-                onChange={(event)=>setEndLocation(event.target.value)}
+                onChange={(event) => setEndLocation(event.target.value)}
               />
             </FloatingLabel>
             <DropdownButton
@@ -198,18 +263,35 @@ function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
             >
               <div className="select-route-scrollable-dropdown-menu">
                 {getFirstAndLastLocations(locationNames).map((name, index) => (
-                  <Dropdown.Item key={index} onClick={() => handleEndLocationSelect(name)}>{name}</Dropdown.Item>
+                  <Dropdown.Item
+                    key={index}
+                    onClick={() => handleEndLocationSelect(name)}
+                  >
+                    {name}
+                  </Dropdown.Item>
                 ))}
               </div>
             </DropdownButton>
           </InputGroup>
 
           <div className="select-route-start-button-box button-box container-flex">
-            <Button className="select-route-start-button" variant="dark" onClick={handleStart}>Start</Button>{' '}
+            <Button
+              className="select-route-start-button"
+              variant="dark"
+              onClick={handleStart}
+            >
+              Start
+            </Button>{" "}
           </div>
 
           <div className="select-route-back-button-box button-box container-flex">
-            <Button className="select-route-back-button" variant="dark" onClick={handleBack}>Back</Button>{' '}
+            <Button
+              className="select-route-back-button"
+              variant="dark"
+              onClick={handleBack}
+            >
+              Back
+            </Button>{" "}
           </div>
         </div>
 
@@ -217,7 +299,11 @@ function SelectRoute({ onRouteSelected }) { // Added onRouteSelected prop
         <div className="main-right col-sm-12 col-md-6 col-lg-6 col-xl-6">
           <div className="right-map-box container-flex">
             {routeImageUrl ? (
-              <img src={routeImageUrl} alt="Selected Route Map" className="route-image" />
+              <img
+                src={routeImageUrl}
+                alt="Selected Route Map"
+                className="route-image"
+              />
             ) : (
               <p>Select a start and end location to view the route.</p>
             )}
