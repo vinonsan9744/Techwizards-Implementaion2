@@ -86,23 +86,23 @@ function ApproveHazard() {
     const day = date.getUTCDate();
     const monthIndex = date.getUTCMonth();
     const year = date.getUTCFullYear();
-
+  
     const monthNames = [
       "January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"
     ];
-
+  
     const month = monthNames[monthIndex];
-
+  
     const hours = date.getUTCHours();
     const minutes = date.getUTCMinutes();
-
+  
     const period = hours >= 12 ? 'PM' : 'AM';
     const formattedHours = hours % 12 || 12;
     const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-
+  
     const time = `${formattedHours}:${formattedMinutes} ${period}`;
-
+  
     return { day, month, year, time };
   };
 
@@ -233,12 +233,12 @@ function ApproveHazard() {
                       </div>
                     </div>
                     <div className="ApproveHazard-description-box container-flex">
-                      <p>
-                        {selectedNotification && (() => {
-                          const { day, month, year, time } = formatDate(selectedNotification.time);
-                          return `IN ${selectedNotification.locationName}, On ${day} ${month} ${year} at ${time}, ${selectedNotification.HazardType} hazard was reported`;
-                        })()}
-                      </p>
+                    <p>
+  {selectedNotification && (() => {
+    const { day, month, year, time } = formatDate(selectedNotification.Date); // Use `Date` here
+    return `IN ${selectedNotification.locationName}, On ${day} ${month} ${year} at ${time}, ${selectedNotification.HazardType} hazard was reported.`;
+  })()}
+</p>
                     </div>
                     <div className="ApproveHazard-accept-box container-flex">
                       <div className="row">
