@@ -22,6 +22,7 @@ function ResetPassword() {
   const [pilotId, setPilotId] = useState("");
   const [loading, setLoading] = useState(false); // Loading state
   const [showModal, setShowModal] = useState(false); // Modal state
+  const [messageType, setMessageType] = useState("");
   
 
   // Function to handle username verification
@@ -131,6 +132,12 @@ function ResetPassword() {
     }
   };
 
+  const displayMessage = (type, text) => {
+    setMessageType(type);
+    setMessage(text);
+    setTimeout(() => setMessage(""), 5000); // Clear message after 5 seconds
+  };
+
   return (
     <div className="container-flex vh-100">
       <div className="row vh-100">
@@ -172,78 +179,82 @@ function ResetPassword() {
               </Form.Floating>
 
               <Button
-                variant="primary"
-                className="ResetPassword-submit-button"
+                variant=""
+                className="ResetPassword-verify-email-button"
                 onClick={handleEmailVerification}>
                 Verify Email
               </Button>
             </>
           )}
 
-          {otpVisible && (
-            <>
-              <Form.Floating className="mt-4 mb-3">
-                <Form.Control
-                  id="floatingOtp"
-                  type="text"
-                  placeholder="OTP"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="ResetPassword-otp-textbox"
-                />
-                <label htmlFor="floatingOtp" className="ResetPassword-otp-label">OTP</label>
-              </Form.Floating>
+{otpVisible && !resetPasswordVisible && (
+    <>
+        <Form.Floating className="mt-4 mb-3">
+            <Form.Control
+                id="floatingOtp"
+                type="text"
+                placeholder="OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="ResetPassword-otp-textbox"
+            />
+            <label htmlFor="floatingOtp" className="ResetPassword-otp-label">OTP</label>
+        </Form.Floating>
 
-              <Button
-                variant="primary"
-                className="ResetPassword-submit-button"
-                onClick={handleOtpVerification}>
-                Verify OTP
-              </Button>
-            </>
-          )}
+        <Button
+            variant="primary"
+            className="ResetPassword-verify-otp-button"
+            onClick={handleOtpVerification}>
+            Verify OTP
+        </Button>
+    </>
+)}
 
-          {resetPasswordVisible && (
-            <>
-              <Form.Floating className="mt-4 mb-3">
-                <Form.Control
-                  id="floatingNewPassword"
-                  type="password"
-                  placeholder="New Password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-                <label htmlFor="floatingNewPassword">New Password</label>
-              </Form.Floating>
+{resetPasswordVisible && (
+    <>
 
-              <Form.Floating className="mt-4 mb-3">
-                <Form.Control
-                  id="floatingConfirmPassword"
-                  type="password"
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                <label htmlFor="floatingConfirmPassword">Confirm Password</label>
-              </Form.Floating>
+        <Form.Floating className="mt-4 mb-3">
+            <Form.Control
+                id="floatingPilotId"
+                type="text"
+                placeholder="Pilot ID"
+                value={pilotId}
+                readOnly
+                className="ResetPassword-pilot-id-textbox"
+            />
+            <label htmlFor="floatingPilotId" className="ResetPassword-pilot-id-label">Pilot ID</label>
+        </Form.Floating>
 
-              <Form.Floating className="mt-4 mb-3">
-                <Form.Control
-                  id="floatingPilotId"
-                  type="text"
-                  placeholder="Pilot ID"
-                  value={pilotId}
-                  readOnly
-                  className="ResetPassword-pilot-id-textbox"
-                />
-                <label htmlFor="floatingPilotId" className="ResetPassword-pilot-id-label">Pilot ID</label>
-              </Form.Floating>
+        <Form.Floating className="mt-4 mb-3">
+            <Form.Control
+                id="floatingNewPassword"
+                type="password"
+                placeholder="New Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <label htmlFor="floatingNewPassword">New Password</label>
+        </Form.Floating>
 
-              <Button variant="primary" onClick={handleResetPassword}>
-                Reset Password
-              </Button>
-            </>
-          )}
+        <Form.Floating className="mt-4 mb-3">
+            <Form.Control
+                id="floatingConfirmPassword"
+                type="password"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <label htmlFor="floatingConfirmPassword">Confirm Password</label>
+        </Form.Floating>
+
+      
+
+        <Button variant="primary" onClick={handleResetPassword} className="ResetPassword-reset-password-button">
+            Reset Password
+        </Button>
+    </>
+)}
+
 
           {/* Display message */}
           <div className="ResetPassword-message">
@@ -251,15 +262,21 @@ function ResetPassword() {
           </div>
 
           {loading ? ( // Show loading state
-            <p>Loading...</p>
-          ) : (
-            <Button
-              variant="#387373"
-              className="ResetPassword-sumbit-button"
-              onClick={handleUsernameVerification}>
-              Reset
-            </Button>
-          )}
+  <p>Loading...</p>
+) : (
+  !emailVisible && !otpVisible && !resetPasswordVisible && ( // Conditionally render reset button
+    <Button
+      variant="#387373"
+      className="ResetPassword-sumbit-button"
+      onClick={handleUsernameVerification}
+    >
+      Reset
+    </Button>
+  )
+)}
+
+
+
           
           <div className="ResetPassword-back">
             <p onClick={() => navigate('/')}>Back to login?</p>
