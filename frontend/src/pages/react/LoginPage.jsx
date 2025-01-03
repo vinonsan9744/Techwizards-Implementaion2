@@ -222,7 +222,11 @@ function LoginPage() {
               </div>
 
               <div className="hazard-LoginPage-login-button-box container-flex">
-                <Button type="submit" className="hazard-LoginPage-login-button">
+                <Button
+                  type="submit"
+                  variant="#052020"
+                  className="hazard-LoginPage-login-button"
+                >
                   Sign in
                 </Button>
               </div>
