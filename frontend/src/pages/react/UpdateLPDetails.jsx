@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from 'react';
 import "./../style/UpdateLPDetails.css";
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -18,6 +20,7 @@ function UpdateLPDetails() {
   const [lpName, setLPName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [initialLPName, setInitialLPName] = useState('');
   const [initialPhoneNumber, setInitialPhoneNumber] = useState('');
   const [initialEmail, setInitialEmail] = useState('');
@@ -168,7 +171,7 @@ function UpdateLPDetails() {
             </div>
             <div className="UpdateLPDetails-heading-line container-flex"></div>
 
-            <div className="UpdateLPDetails-table-container" style={{ overflowY: 'scroll', height: '80vh' }}>
+            <div className="UpdateLPDetails-table-container" style={{ overflowY: 'scroll', height: '75vh' }}>
               <table className="table table-striped">
                 <thead>
                   <tr>
