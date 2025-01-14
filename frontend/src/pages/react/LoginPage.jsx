@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
 import "./../style/LoginPage.css";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
@@ -13,13 +12,18 @@ import { FaCarSide } from "react-icons/fa";
 import { FaUserTie } from "react-icons/fa";
 import { FaCloudSunRain } from "react-icons/fa";
 import { FaMapLocationDot } from "react-icons/fa6";
+import { useEffect, useState } from "react"; // Make sure to import useEffect
 
 function LoginPage() {
   const [selectedOption, setSelectedOption] = useState("");
   const [details, setDetails] = useState({ id: "", password: "" });
   const [error, setError] = useState("");
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [success, setSuccess] = useState(false); // Fix: should be boolean, not string
   const navigate = useNavigate();
+
+  const handleCloseSuccessModal = () => setSuccess(false);
+  const handleCloseErrorModal = () => setShowErrorModal(false);
 
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
@@ -73,17 +77,10 @@ function LoginPage() {
 
       // Login successful
       setError(""); // Clear any previous errors
+      setDetails({ id: "", password: "" }); // Clear the form inputs
 
-      // Clear the form inputs
-      setDetails({ id: "", password: "" });
-
-      if (selectedOption === "option1") {
-        // Navigate to home page for Locomotive pilot
-        navigate("/selectroute");
-      } else if (selectedOption === "option2") {
-        // Navigate to admin home page
-        navigate("/adminhomepage");
-      }
+      // Show success modal
+      setSuccess(true);
     } catch (error) {
       const errorMessage = error.response
         ? error.response.data.error
@@ -93,7 +90,21 @@ function LoginPage() {
     }
   };
 
-  const handleCloseErrorModal = () => setShowErrorModal(false);
+  useEffect(() => {
+    if (success) {
+      // Wait for the modal to close before navigating
+      const timer = setTimeout(() => {
+        if (selectedOption === "option1") {
+          navigate("/selectroute");
+        } else if (selectedOption === "option2") {
+          navigate("/adminhomepage");
+        }
+      }, 2000); // Wait for 2 seconds before navigating
+
+      // Cleanup timer on component unmount
+      return () => clearTimeout(timer);
+    }
+  }, [success, selectedOption, navigate]); // Trigger effect when 'success' state changes
 
   return (
     <>
@@ -153,6 +164,25 @@ function LoginPage() {
               <div className="hazard-LoginPage-heading-title">Login Form</div>
             </div>
 
+            {/* Modal for Success */}
+            {success && (
+              <Modal show={success} onHide={handleCloseSuccessModal}>
+                <Modal.Header closeButton>
+                  <Modal.Title>Success</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  {selectedOption === "option1"
+                    ? "Login successful! You are redirecting to the Select route!"
+                    : "Login successful! You are redirecting to the Admin home page!"}
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button variant="success" onClick={handleCloseSuccessModal}>
+                    Close
+                  </Button>
+                </Modal.Footer>
+              </Modal>
+            )}
+            {/* Modal for Error */}
             {error && (
               <Modal show={showErrorModal} onHide={handleCloseErrorModal}>
                 <Modal.Header closeButton>
@@ -160,7 +190,7 @@ function LoginPage() {
                 </Modal.Header>
                 <Modal.Body>{error}</Modal.Body>
                 <Modal.Footer>
-                  <Button variant="secondary" onClick={handleCloseErrorModal}>
+                  <Button variant="danger" onClick={handleCloseErrorModal}>
                     Close
                   </Button>
                 </Modal.Footer>

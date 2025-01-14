@@ -123,6 +123,7 @@ function UpdateHazard() {
     description: "",
     locomotivePilotID: "",
   });
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -137,13 +138,13 @@ function UpdateHazard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // validation Check if all fields are empty
+    // Validation check if all fields are empty
     if (
-      formData.locationName.trim() === "" &&
-      formData.locomotivePilotID.trim() === "" &&
-      formData.HazardType.trim() === "" &&
       formData.description.trim() === "" &&
       formData.Date.trim() === "" &&
+      formData.HazardType.trim() === "" &&
+      formData.locationName.trim() === "" &&
+      formData.locomotivePilotID.trim() === "" &&
       selectedLocationType.trim() === ""
     ) {
       setError("All fields are empty. Please fill all the fields.");
@@ -151,21 +152,22 @@ function UpdateHazard() {
       return;
     }
 
-    // Validation check if more that 1 fields are empty
+    // Validation check if more than 1 field is empty
     const fields = {
       "Date and Time": formData.Date.trim(),
       "Location Route": selectedLocationType.trim(),
       "Location Name": formData.locationName.trim(),
       "Hazard Type": formData.HazardType.trim(),
+      Description: formData.description.trim(),
       "Locomotive Pilot ID": formData.locomotivePilotID.trim(),
     };
 
-    // Count empty fields
     const emptyFields = Object.keys(fields).filter((key) => fields[key] === "");
 
-    // Check if more than 1 field is empty
     if (emptyFields.length > 1) {
-      setError(`Please fill the required fields: ${emptyFields.join(", ")}`);
+      setError(
+        `Please fill in the following fields: ${emptyFields.join(", ")}`
+      );
       setShowErrorModal(true);
       return;
     }
@@ -187,6 +189,10 @@ function UpdateHazard() {
       setError("Hazard Type Field Is Empty.");
       setShowErrorModal(true);
       return;
+    } else if (formData.description.trim() === "") {
+      setError("Description Field Is Empty.");
+      setShowErrorModal(true);
+      return;
     } else if (formData.locomotivePilotID.trim() === "") {
       setError("Locomotive Pilot ID Field Is Empty.");
       setShowErrorModal(true);
@@ -201,19 +207,27 @@ function UpdateHazard() {
       console.log(response.data); // Handle success response
       setError(""); // Clear any previous errors
       setSuccess(true); // Show success message
+
+      // Reset the form data to clear all inputs
       setFormData({
         Date: "",
         HazardType: "",
         locationName: "",
         description: "",
         locomotivePilotID: "",
-      }); // Clear the form inputs
+      });
+
+      // Clear additional selected states
+      setSelectedLocationType("");
+      setSelectedLocationName("");
+      setSelectedDate(null);
+      setSelectedHazard("");
     } catch (error) {
-      console.error("Hazard Repoting failed:", error); // Log the error
+      console.error("Hazard Reporting failed:", error); // Log the error
       if (error.response && error.response.data && error.response.data.error) {
         setError(error.response.data.error); // Set error message from server response
       } else {
-        setError("Hazard Repoting failed. Please try again."); // Set a generic error message
+        setError("Hazard Reporting failed. Please try again."); // Set a generic error message
       }
       setShowErrorModal(true); // Show error modal
     }
@@ -373,7 +387,7 @@ function UpdateHazard() {
                       style={{ height: "5px" }}
                       aria-label="Text input with dropdown button"
                       id="update-hazard-input"
-                      value={selectedHazard || formData.hazardType}
+                      value={selectedHazard || formData.HazardType}
                       onChange={handleChange}
                     />
                   </FloatingLabel>

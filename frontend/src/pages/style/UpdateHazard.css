@@ -21,7 +21,6 @@ html {
   width: 80%;
   border-bottom-right-radius: 200px;
   margin-left: -4%;
-  
 }
 
 .update-hazard-title {
@@ -30,37 +29,31 @@ html {
   font-weight: bolder;
   margin-left: 5%;
   color: #e4f2e7;
-  
 }
-#update-hazard-input-group-dropdown-2{
+#update-hazard-input-group-dropdown-2 {
   background-color: #387373;
   color: #e4f2e7;
   font-size: 1.2rem;
   font-weight: bolder;
 }
 
-.update-hazard-button-icon{
+.update-hazard-button-icon {
   color: #e4f2e7;
   font-size: 4vh;
 }
 
-
-
-#update-hazard-input{
-  border: .5vh solid #387373;
+#update-hazard-input {
+  border: 0.5vh solid #387373;
   font-size: 1.2rem;
   color: #387373;
   font-weight: bolder;
 }
 
-
-
-.update-hazard-input-dropdown-box{
+.update-hazard-input-dropdown-box {
   width: 100%;
   margin-top: 3%;
-  
 }
-.update-hazard-button{
+.update-hazard-button {
   background-color: #387373;
   color: #e4f2e7;
   width: 100%;
@@ -69,7 +62,7 @@ html {
   border: #387373;
   margin-bottom: 10%;
 }
-.update-hazard-button-box{
+.update-hazard-button-box {
   /* background-color: #ebe7e7; */
   width: 100%;
   height: 60%;
@@ -81,7 +74,7 @@ html {
   max-height: 200px; /* Adjust the height as needed */
   overflow-y: auto;
 }
-.UpdateHazardDetails-input-dropdown-box{
+.UpdateHazardDetails-input-dropdown-box {
   margin-bottom: 2%;
   width: 100%;
   background-color: #387373;
@@ -89,38 +82,37 @@ html {
   margin-top: 2%;
   border-radius: 2vh;
 }
-#UpdateHazardDetails-input-group-dropdown-2{
+#UpdateHazardDetails-input-group-dropdown-2 {
   background-color: #387373;
   color: #e4f2e7;
   font-size: 1.2rem;
   font-weight: bolder;
 }
-#UpdateHazardDetails-input{
-  border: .5vh solid #387373;
+#UpdateHazardDetails-input {
+  border: 0.5vh solid #387373;
   font-size: 1.2rem;
   color: #387373;
-  font-weight: bolder;}
+  font-weight: bolder;
+}
 
-  
-#UpdateHazardDetails-input-group-dropdown-2{
+#UpdateHazardDetails-input-group-dropdown-2 {
   background-color: #387373;
   color: #e4f2e7;
   font-size: 1.2rem;
   font-weight: bolder;
 }
-#UpdateHazardDetails-input{
-  border: .5vh solid #387373;
+#UpdateHazardDetails-input {
+  border: 0.5vh solid #387373;
   font-size: 1rem;
   color: #387373;
   font-weight: bolder;
 }
-.UpdateHazardDetails-input-dropdown-box{
+.UpdateHazardDetails-input-dropdown-box {
   width: 100%;
   margin-top: 3%;
-  
 }
-.UpdateHazardDetails-input-text-box{
-  border: .5vh solid #387373;
+.UpdateHazardDetails-input-text-box {
+  border: 0.5vh solid #387373;
   font-size: 1rem;
   color: #387373;
   font-weight: bolder;

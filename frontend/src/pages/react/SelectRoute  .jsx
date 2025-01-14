@@ -178,6 +178,7 @@ function SelectRoute({ onRouteSelected }) {
             <DropdownButton
               variant="outline-secondary"
               title={<FaRoute />}
+              id="select-route-input-group-dropdown-2"
               align="end"
               className="select-route-dropdown-box-button"
             >
@@ -211,6 +212,7 @@ function SelectRoute({ onRouteSelected }) {
             <DropdownButton
               variant="outline-secondary"
               title={<MdAddLocationAlt />}
+              id="select-route-input-group-dropdown-2"
               align="end"
               className="select-route-dropdown-box-button"
             >
@@ -244,6 +246,7 @@ function SelectRoute({ onRouteSelected }) {
             <DropdownButton
               variant="outline-secondary"
               title={<MdAddLocationAlt />}
+              id="select-route-input-group-dropdown-2"
               align="end"
               className="select-route-dropdown-box-button"
             >

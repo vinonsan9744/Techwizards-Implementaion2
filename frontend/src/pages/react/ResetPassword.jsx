@@ -26,6 +26,13 @@ function ResetPassword() {
 
   // Function to handle username verification
   const handleUsernameVerification = async () => {
+    // Check if the username is empty
+    if (!username.trim()) {
+      setMessage("Please enter the username.");
+      setMessageStyle("error"); // Set style to error
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await axios.post(
@@ -35,7 +42,7 @@ function ResetPassword() {
       if (response.status === 200) {
         setEmailVisible(true);
         setMessage("Username found. Please enter your email.");
-        setMessageStyle(""); // Clear style for success
+        setMessageStyle("success");
       }
     } catch (error) {
       setMessage("Username not found.");
@@ -49,7 +56,7 @@ function ResetPassword() {
   // Function to verify email and send OTP
   const handleEmailVerification = async () => {
     if (!email.trim()) {
-      setMessage("Please enter the email associated with the user name");
+      setMessage("Please enter the email associated with the username.");
       setMessageStyle("error");
       return;
     }
@@ -92,7 +99,7 @@ function ResetPassword() {
       if (response.status === 200) {
         setOtpVisible(true);
         setMessage("OTP sent to your email. Please enter it.");
-        setMessageStyle(""); // Clear style for success
+        setMessageStyle("success");
       }
     } catch (error) {
       setMessage("Failed to send OTP. Please try again.");
@@ -103,8 +110,16 @@ function ResetPassword() {
     }
   };
 
+  // Function to verify OTP
   const handleOtpVerification = async () => {
+    if (!otp.trim()) {
+      setMessage("Please enter the OTP sent to your email.");
+      setMessageStyle("error"); // Set style to error
+      return;
+    }
+
     setLoading(true);
+
     try {
       const response = await axios.post(
         "http://localhost:8000/locomotivePilot/verifyOTP",
@@ -118,7 +133,7 @@ function ResetPassword() {
         setMessage(
           "OTP verified successfully. Please enter your new password."
         );
-        setMessageStyle(""); // Clear style for success
+        setMessageStyle("success");
       }
     } catch (error) {
       const errorMsg = error.response
@@ -132,13 +147,17 @@ function ResetPassword() {
     }
   };
 
+  // Function to verify Reset Password
   const handleResetPassword = async () => {
-    setMessage("");
+    // Check if the passwords match
     if (newPassword !== confirmPassword) {
       setMessage("Passwords do not match.");
       setMessageStyle("error"); // Set style to error
       return;
     }
+    setMessage("");
+    setMessageStyle("");
+    // Ensure pilotId exists before making the request
     if (!pilotId) {
       setMessage("Pilot ID is required to reset password.");
       setMessageStyle("error"); // Set style to error
@@ -146,6 +165,7 @@ function ResetPassword() {
     }
 
     try {
+      // Send request to update the password
       const response = await axios.patch(
         `http://localhost:8000/locomotivePilot/updatePassword/${pilotId}`,
         {
@@ -153,13 +173,15 @@ function ResetPassword() {
         }
       );
 
+      // If the password update is successful
       if (response.status === 200) {
-        setShowModal(true); // Show the modal on success
+        setShowModal(true); // Show the modal success message
         setTimeout(() => {
           navigate("/"); // Redirect to login page after a delay
         }, 2000);
       }
     } catch (error) {
+      // Handle errors if the request fails
       const errorMsg = error.response
         ? error.response.data.message
         : "Failed to reset password.";
@@ -228,11 +250,6 @@ function ResetPassword() {
 
           {emailVisible && !otpVisible && (
             <>
-              {/* Display message */}
-              <div className={`ResetPassword-message ${messageStyle}`}>
-                <p>{message}</p>
-              </div>
-
               <Form.Floating className="mt-4 mb-3">
                 <Form.Control
                   id="floatingEmail"
@@ -248,6 +265,10 @@ function ResetPassword() {
                 >
                   Email
                 </label>
+                {/* Display message */}
+                <div className={`ResetPassword-message ${messageStyle}`}>
+                  <p>{message}</p>
+                </div>
               </Form.Floating>
 
               {loading ? ( // Show loading state
@@ -265,10 +286,6 @@ function ResetPassword() {
           )}
           {otpVisible && !resetPasswordVisible && (
             <>
-              {/* Display message */}
-              <div className={`ResetPassword-message ${messageStyle}`}>
-                <p>{message}</p>
-              </div>
               <Form.Floating className="mt-4 mb-3">
                 <Form.Control
                   id="floatingOtp"
@@ -284,6 +301,10 @@ function ResetPassword() {
                 >
                   OTP
                 </label>
+                {/* Display message */}
+                <div className={`ResetPassword-message ${messageStyle}`}>
+                  <p>{message}</p>
+                </div>
               </Form.Floating>
 
               {loading ? ( // Show loading state
@@ -341,6 +362,10 @@ function ResetPassword() {
                 <label htmlFor="floatingConfirmPassword">
                   Confirm Password
                 </label>
+                {/* Display message */}
+                <div className={`ResetPassword-message ${messageStyle}`}>
+                  <p>{message}</p>
+                </div>
               </Form.Floating>
 
               <Button
@@ -364,7 +389,7 @@ function ResetPassword() {
               <p>Your password has been updated successfully!</p>
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onClick={() => setShowModal(false)}>
+              <Button variant="success" onClick={() => setShowModal(false)}>
                 Close
               </Button>
             </Modal.Footer>
