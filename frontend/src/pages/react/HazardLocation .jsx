@@ -115,7 +115,7 @@ function HazardLocation() {
               />
             </FloatingLabel>
             <Dropdown align="end">
-              <Dropdown.Toggle as={Button} variant="outline-secondary" id="update-hazard-input-group-dropdown-2" className="custom-dropdown-toggle">
+              <Dropdown.Toggle as={Button} variant="outline-secondary" id="hazard-location-update-hazard-input-group-dropdown-2" className="custom-dropdown-toggle">
                 <FaRoute />
               </Dropdown.Toggle>
               <Dropdown.Menu className="LP-hazard-location-scrollable-dropdown-menu">

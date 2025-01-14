@@ -152,7 +152,12 @@ html {
   margin-top: 2%;
  
 }
-
+#hazard-location-update-hazard-input-group-dropdown-2{
+  background-color: #387373;
+  color: #e4f2e7;
+  font-size: 1.2rem;
+  font-weight: bolder;
+}
 .hazard-location-possible-hazard-box{
   display: flex;
   align-items: flex-start;
