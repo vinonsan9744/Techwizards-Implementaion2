@@ -191,6 +191,7 @@ function ResetPassword() {
             </p>
           </div>
 
+
           {!emailVisible && (
             <Form.Floating className="mb-3">
               <Form.Control
@@ -249,6 +250,41 @@ function ResetPassword() {
                   Email
                 </label>
               </Form.Floating>
+
+          <Form.Floating className="mb-3">
+            <Form.Control
+              id="floatingUsername"
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="ResetPassword-username-textbox"
+            />
+            <label htmlFor="floatingUsername" className="ResetPassword-username-label">Username</label>
+          </Form.Floating>
+
+          {emailVisible && !otpVisible && (
+            <>
+              <Form.Floating className="mt-4 mb-3">
+                <Form.Control
+                  id="floatingEmail"
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="ResetPassword-username-textbox"
+                />
+                <label htmlFor="floatingEmail" className="ResetPassword-username-label">Email</label>
+              </Form.Floating>
+
+              <Button
+                variant="primary"
+                className="ResetPassword-submit-button"
+                onClick={handleEmailVerification}>
+                Verify Email
+              </Button>
+            </>
+          )}
 
               {loading ? ( // Show loading state
                 <p>Loading...</p>

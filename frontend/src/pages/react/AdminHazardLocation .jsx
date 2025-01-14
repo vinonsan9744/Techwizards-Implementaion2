@@ -13,7 +13,9 @@ import axios from "axios";
 
 function AdminHazardLocation() {
   const navigate = useNavigate();
-  const [selectedMethod, setSelectedMethod] = useState(""); // Default selection for hazard type
+
+  const [selectedMethod, setSelectedMethod] = useState("");
+
   const [locationTypes, setLocationTypes] = useState([]);
   const [selectedLocationType, setSelectedLocationType] = useState("");
   const [locationNames, setLocationNames] = useState([]);
@@ -66,6 +68,17 @@ function AdminHazardLocation() {
     fetchLocationNames();
   }, [selectedLocationType]);
 
+  const resetPageState = () => {
+    setFormData({
+      HazardType: "Bull", // Reset to default hazard type
+      LocationName: "",
+    });
+    setSelectedLocationType("");
+    setSelectedLocationName("");
+    setSelectedMethod("");
+    setHazards([]); // Reset hazards list to show "No hazards"
+  };
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -113,12 +126,9 @@ function AdminHazardLocation() {
       console.log(response.data); // Log response data to verify if the data is saved correctly
       setError("");
       setSuccess(true);
-      setFormData({
-        HazardType: "Elephant", // Reset to default selection
-        LocationName: "",
-      });
-      setSelectedLocationType("");
-      setSelectedLocationName("");
+
+      resetPageState(); // Reset the page state after successful submission
+
     } catch (error) {
       console.error("Hazard Reporting failed:", error);
       setError(
