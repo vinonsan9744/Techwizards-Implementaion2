@@ -8,6 +8,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal"; // Import Modal component
 import { MdAddLocationAlt } from "react-icons/md";
 import { FaRoute } from "react-icons/fa";
 import FloatingLabel from "react-bootstrap/FloatingLabel";
@@ -15,14 +16,18 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 function SelectRoute({ onRouteSelected }) {
-  // Added onRouteSelected prop
   const [locationTypes, setLocationTypes] = useState([]);
   const [selectedLocationType, setSelectedLocationType] = useState("");
   const [locationNames, setLocationNames] = useState([]);
   const [startLocation, setStartLocation] = useState("");
   const [endLocation, setEndLocation] = useState("");
   const [routeImageUrl, setRouteImageUrl] = useState(""); // State for the route image URL
+  const [showErrorModal, setShowErrorModal] = useState(false); // State for showing modal
+  const [error, setError] = useState(""); // State for error message
   const navigate = useNavigate();
+
+  // Handle closing the error modal
+  const handleCloseErrorModal = () => setShowErrorModal(false);
 
   // Fetch location types on component mount
   useEffect(() => {
@@ -117,20 +122,20 @@ function SelectRoute({ onRouteSelected }) {
           state: { startLocation, endLocation, selectedLocationType },
         });
       }, 2000);
-    } else if (!selectedLocationType) {
-      alert("Please select the required fields."); // Route not selected
-    } else if (!startLocation && !endLocation) {
-      alert("Please select both starting and ending locations."); // Both locations missing
-    } else if (!startLocation) {
-      alert("Please select the starting location."); // Start location missing
-    } else if (!endLocation) {
-      alert("Please select the ending location."); // End location missing
+    } else {
+      let errorMessage = "";
+      if (!selectedLocationType) {
+        errorMessage = "Please select the required fields.";
+      } else if (!startLocation && !endLocation) {
+        errorMessage = "Please select both starting and ending locations.";
+      } else if (!startLocation) {
+        errorMessage = "Please select the starting location.";
+      } else if (!endLocation) {
+        errorMessage = "Please select the ending location.";
+      }
+      setError(errorMessage);
+      setShowErrorModal(true);
     }
-  };
-
-  const handleRouteSelection = (routeDetails) => {
-    console.log("Route selection triggered in App:", routeDetails); // Confirming data is passed
-    setRouteDetails(routeDetails);
   };
 
   // Handle click on Back button
@@ -173,7 +178,6 @@ function SelectRoute({ onRouteSelected }) {
             <DropdownButton
               variant="outline-secondary"
               title={<FaRoute />}
-              id="select-route-input-group-dropdown-2"
               align="end"
               className="select-route-dropdown-box-button"
             >
@@ -200,22 +204,13 @@ function SelectRoute({ onRouteSelected }) {
               <Form.Control
                 aria-label="Text input with dropdown button"
                 id="select-route-input"
-                value={
-                  startLocation
-                    ? startLocation
-                    : selectedLocationType
-                    ? "Select Start Location"
-                    : "Select Location Route First"
-                }
+                value={startLocation || "Select Start Location"}
                 readOnly
-                autoComplete="off"
-                onChange={(event) => setStartLocation(event.target.value)}
               />
             </FloatingLabel>
             <DropdownButton
               variant="outline-secondary"
               title={<MdAddLocationAlt />}
-              id="select-route-input-group-dropdown-2"
               align="end"
               className="select-route-dropdown-box-button"
             >
@@ -225,7 +220,7 @@ function SelectRoute({ onRouteSelected }) {
                     key={index}
                     onClick={() => handleStartLocationSelect(name)}
                   >
-                    {name}{" "}
+                    {name}
                   </Dropdown.Item>
                 ))}
               </div>
@@ -242,22 +237,13 @@ function SelectRoute({ onRouteSelected }) {
               <Form.Control
                 aria-label="Text input with dropdown button"
                 id="select-route-input"
-                value={
-                  endLocation
-                    ? endLocation
-                    : selectedLocationType
-                    ? "Select End Location"
-                    : "Select Location Route First"
-                }
+                value={endLocation || "Select End Location"}
                 readOnly
-                autoComplete="off"
-                onChange={(event) => setEndLocation(event.target.value)}
               />
             </FloatingLabel>
             <DropdownButton
               variant="outline-secondary"
               title={<MdAddLocationAlt />}
-              id="select-route-input-group-dropdown-2"
               align="end"
               className="select-route-dropdown-box-button"
             >
@@ -281,7 +267,7 @@ function SelectRoute({ onRouteSelected }) {
               onClick={handleStart}
             >
               Start
-            </Button>{" "}
+            </Button>
           </div>
 
           <div className="select-route-back-button-box button-box container-flex">
@@ -291,7 +277,7 @@ function SelectRoute({ onRouteSelected }) {
               onClick={handleBack}
             >
               Back
-            </Button>{" "}
+            </Button>
           </div>
         </div>
 
@@ -310,6 +296,21 @@ function SelectRoute({ onRouteSelected }) {
           </div>
         </div>
       </div>
+
+      {/* Error Modal */}
+      {error && (
+        <Modal show={showErrorModal} onHide={handleCloseErrorModal}>
+          <Modal.Header closeButton>
+            <Modal.Title>Error</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>{error}</Modal.Body>
+          <Modal.Footer>
+            <Button variant="danger" onClick={handleCloseErrorModal}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
     </div>
   );
 }

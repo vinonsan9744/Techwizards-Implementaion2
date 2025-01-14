@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import Form from 'react-bootstrap/Form';
+import Form from "react-bootstrap/Form";
 import "./../style/ResetPassword.css";
-import Button from 'react-bootstrap/Button';
-import { useNavigate } from 'react-router-dom';
+import Button from "react-bootstrap/Button";
+import { useNavigate } from "react-router-dom";
 import { MdLockReset } from "react-icons/md";
-import axios from 'axios';
-import { Modal } from 'react-bootstrap'; // Import Modal
+import axios from "axios";
+import { Modal } from "react-bootstrap"; // Import Modal
 
 function ResetPassword() {
   const navigate = useNavigate();
@@ -22,19 +22,24 @@ function ResetPassword() {
   const [pilotId, setPilotId] = useState("");
   const [loading, setLoading] = useState(false); // Loading state
   const [showModal, setShowModal] = useState(false); // Modal state
-  
+  const [messageStyle, setMessageStyle] = useState(""); // Initialize style
 
   // Function to handle username verification
   const handleUsernameVerification = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:8000/locomotivePilot/verifyUsername", { locomotiveName: username });
+      const response = await axios.post(
+        "http://localhost:8000/locomotivePilot/verifyUsername",
+        { locomotiveName: username }
+      );
       if (response.status === 200) {
         setEmailVisible(true);
         setMessage("Username found. Please enter your email.");
+        setMessageStyle(""); // Clear style for success
       }
     } catch (error) {
       setMessage("Username not found.");
+      setMessageStyle("error"); // Set style to error
       setEmailVisible(false);
     } finally {
       setLoading(false);
@@ -43,18 +48,30 @@ function ResetPassword() {
 
   // Function to verify email and send OTP
   const handleEmailVerification = async () => {
+    if (!email.trim()) {
+      setMessage("Please enter the email associated with the user name");
+      setMessageStyle("error");
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:8000/locomotivePilot/verifyEmail", {
-        locomotiveName: username,
-        locomotiveEmail: email
-      });
+      const response = await axios.post(
+        "http://localhost:8000/locomotivePilot/verifyEmail",
+        {
+          locomotiveName: username,
+          locomotiveEmail: email,
+        }
+      );
       if (response.status === 200) {
+        setMessage("");
+        setMessageStyle(""); // Clear style for success
         setPilotId(response.data.locomotivePilotID); // Set the pilot ID here
         await handleSendOtp();
       }
     } catch (error) {
-      setMessage("Email not associated with this username.");
+      setMessage("Email not associated with the username.");
+      setMessageStyle("error");
       setOtpVisible(false);
     } finally {
       setLoading(false);
@@ -65,16 +82,21 @@ function ResetPassword() {
   const handleSendOtp = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:8000/locomotivePilot/sendOtp", {
-        locomotiveName: username,
-        locomotiveEmail: email
-      });
+      const response = await axios.post(
+        "http://localhost:8000/locomotivePilot/sendOtp",
+        {
+          locomotiveName: username,
+          locomotiveEmail: email,
+        }
+      );
       if (response.status === 200) {
         setOtpVisible(true);
-        setMessage("OTP sent to your email. Please enter it below.");
+        setMessage("OTP sent to your email. Please enter it.");
+        setMessageStyle(""); // Clear style for success
       }
     } catch (error) {
       setMessage("Failed to send OTP. Please try again.");
+      setMessageStyle("error"); // Set style to error
       setOtpVisible(false);
     } finally {
       setLoading(false);
@@ -84,50 +106,65 @@ function ResetPassword() {
   const handleOtpVerification = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:8000/locomotivePilot/verifyOTP", {
-        locomotiveEmail: email,
-        otp: otp
-      });
+      const response = await axios.post(
+        "http://localhost:8000/locomotivePilot/verifyOTP",
+        {
+          locomotiveEmail: email,
+          otp: otp,
+        }
+      );
       if (response.status === 200) {
         setResetPasswordVisible(true); // Show reset password fields
-        setMessage("OTP verified successfully. Please enter your new password.");
+        setMessage(
+          "OTP verified successfully. Please enter your new password."
+        );
+        setMessageStyle(""); // Clear style for success
       }
     } catch (error) {
-      const errorMsg = error.response ? error.response.data.message : "Invalid OTP. Please try again.";
+      const errorMsg = error.response
+        ? error.response.data.message
+        : "Invalid OTP. Please try again.";
       setMessage(errorMsg);
+      setMessageStyle("error"); // Set style to error
       setResetPasswordVisible(false); // Hide reset password fields if OTP is invalid
     } finally {
       setLoading(false);
     }
   };
 
- 
-
   const handleResetPassword = async () => {
     setMessage("");
     if (newPassword !== confirmPassword) {
       setMessage("Passwords do not match.");
+      setMessageStyle("error"); // Set style to error
       return;
     }
     if (!pilotId) {
       setMessage("Pilot ID is required to reset password.");
+      setMessageStyle("error"); // Set style to error
       return;
     }
 
     try {
-      const response = await axios.patch(`http://localhost:8000/locomotivePilot/updatePassword/${pilotId}`, {
-        password: newPassword
-      });
-  
+      const response = await axios.patch(
+        `http://localhost:8000/locomotivePilot/updatePassword/${pilotId}`,
+        {
+          password: newPassword,
+        }
+      );
+
       if (response.status === 200) {
         setShowModal(true); // Show the modal on success
         setTimeout(() => {
-          navigate('/'); // Redirect to login page after a delay
+          navigate("/"); // Redirect to login page after a delay
         }, 2000);
       }
     } catch (error) {
-      const errorMsg = error.response ? error.response.data.message : "Failed to reset password.";
+      const errorMsg = error.response
+        ? error.response.data.message
+        : "Failed to reset password.";
       setMessage(errorMsg);
+      setMessageStyle("error"); // Set style to error
     }
   };
 
@@ -136,14 +173,83 @@ function ResetPassword() {
       <div className="row vh-100">
         <div className="ResetPassword-main col-12">
           <div className="ResetPassword-header-box-img container-flex">
-            <h1><MdLockReset /></h1>
+            <h1>
+              <MdLockReset />
+            </h1>
           </div>
           <div className="ResetPassword-header-box-title">
             <h1>Reset Password</h1>
           </div>
           <div className="ResetPassword-header-box-description">
-            <p>The reset password feature is essential for maintaining account security and providing users with a way to regain access to their accounts in case they forget their passwords. It often incorporates security measures such as email verification and secure password reset forms to ensure the process is secure and reliable.</p>
+            <p>
+              The reset password feature is essential for maintaining account
+              security and providing users with a way to regain access to their
+              accounts in case they forget their passwords. It often
+              incorporates security measures such as email verification and
+              secure password reset forms to ensure the process is secure and
+              reliable.
+            </p>
           </div>
+
+
+          {!emailVisible && (
+            <Form.Floating className="mb-3">
+              <Form.Control
+                id="floatingUsername"
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="ResetPassword-username-textbox"
+              />
+              <label
+                htmlFor="floatingUsername"
+                className="ResetPassword-username-label"
+              >
+                Username
+              </label>
+              {/* Display message */}
+              <div className={`ResetPassword-message ${messageStyle}`}>
+                <p>{message}</p>
+              </div>
+
+              {loading ? ( // Show loading state
+                <p>Loading...</p>
+              ) : (
+                <Button
+                  variant="#387373"
+                  className="ResetPassword-sumbit-button"
+                  onClick={handleUsernameVerification}
+                >
+                  Reset
+                </Button>
+              )}
+            </Form.Floating>
+          )}
+
+          {emailVisible && !otpVisible && (
+            <>
+              {/* Display message */}
+              <div className={`ResetPassword-message ${messageStyle}`}>
+                <p>{message}</p>
+              </div>
+
+              <Form.Floating className="mt-4 mb-3">
+                <Form.Control
+                  id="floatingEmail"
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="ResetPassword-username-textbox"
+                />
+                <label
+                  htmlFor="floatingEmail"
+                  className="ResetPassword-username-label"
+                >
+                  Email
+                </label>
+              </Form.Floating>
 
           <Form.Floating className="mb-3">
             <Form.Control
@@ -180,8 +286,25 @@ function ResetPassword() {
             </>
           )}
 
-          {otpVisible && (
+              {loading ? ( // Show loading state
+                <p>Loading...</p>
+              ) : (
+                <Button
+                  variant="primary"
+                  className="ResetPassword-sumbit-button"
+                  onClick={handleEmailVerification}
+                >
+                  Verify Email
+                </Button>
+              )}
+            </>
+          )}
+          {otpVisible && !resetPasswordVisible && (
             <>
+              {/* Display message */}
+              <div className={`ResetPassword-message ${messageStyle}`}>
+                <p>{message}</p>
+              </div>
               <Form.Floating className="mt-4 mb-3">
                 <Form.Control
                   id="floatingOtp"
@@ -191,20 +314,47 @@ function ResetPassword() {
                   onChange={(e) => setOtp(e.target.value)}
                   className="ResetPassword-otp-textbox"
                 />
-                <label htmlFor="floatingOtp" className="ResetPassword-otp-label">OTP</label>
+                <label
+                  htmlFor="floatingOtp"
+                  className="ResetPassword-otp-label"
+                >
+                  OTP
+                </label>
               </Form.Floating>
 
-              <Button
-                variant="primary"
-                className="ResetPassword-submit-button"
-                onClick={handleOtpVerification}>
-                Verify OTP
-              </Button>
+              {loading ? ( // Show loading state
+                <p>Loading...</p>
+              ) : (
+                <Button
+                  variant="primary"
+                  className="ResetPassword-sumbit-button"
+                  onClick={handleOtpVerification}
+                >
+                  Verify OTP
+                </Button>
+              )}
             </>
           )}
 
           {resetPasswordVisible && (
             <>
+              <Form.Floating className="mt-4 mb-3">
+                <Form.Control
+                  id="floatingPilotId"
+                  type="text"
+                  placeholder="Pilot ID"
+                  value={pilotId}
+                  readOnly
+                  className="ResetPassword-pilot-id-textbox"
+                />
+                <label
+                  htmlFor="floatingPilotId"
+                  className="ResetPassword-pilot-id-label"
+                >
+                  Pilot ID
+                </label>
+              </Form.Floating>
+
               <Form.Floating className="mt-4 mb-3">
                 <Form.Control
                   id="floatingNewPassword"
@@ -224,62 +374,37 @@ function ResetPassword() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
-                <label htmlFor="floatingConfirmPassword">Confirm Password</label>
+                <label htmlFor="floatingConfirmPassword">
+                  Confirm Password
+                </label>
               </Form.Floating>
 
-              <Form.Floating className="mt-4 mb-3">
-                <Form.Control
-                  id="floatingPilotId"
-                  type="text"
-                  placeholder="Pilot ID"
-                  value={pilotId}
-                  readOnly
-                  className="ResetPassword-pilot-id-textbox"
-                />
-                <label htmlFor="floatingPilotId" className="ResetPassword-pilot-id-label">Pilot ID</label>
-              </Form.Floating>
-
-              <Button variant="primary" onClick={handleResetPassword}>
+              <Button
+                variant="primary"
+                className="ResetPassword-sumbit-button"
+                onClick={handleResetPassword}
+              >
                 Reset Password
               </Button>
             </>
           )}
-
-          {/* Display message */}
-          <div className="ResetPassword-message">
-            <p>{message}</p>
-          </div>
-
-          {loading ? ( // Show loading state
-            <p>Loading...</p>
-          ) : (
-            <Button
-              variant="#387373"
-              className="ResetPassword-sumbit-button"
-              onClick={handleUsernameVerification}>
-              Verify Username
-            </Button>
-          )}
-          
           <div className="ResetPassword-back">
-            <p onClick={() => navigate('/')}>Back to login?</p>
+            <p onClick={() => navigate("/")}>Back to login?</p>
           </div>
-
           {/* Modal for password reset confirmation */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Password Reset Successful</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>Your password has been updated successfully!</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
+          <Modal show={showModal} onHide={() => setShowModal(false)}>
+            <Modal.Header closeButton>
+              <Modal.Title>Password Reset Successful</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <p>Your password has been updated successfully!</p>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                Close
+              </Button>
+            </Modal.Footer>
+          </Modal>
         </div>
       </div>
     </div>

@@ -13,7 +13,9 @@ import axios from "axios";
 
 function AdminHazardLocation() {
   const navigate = useNavigate();
+
   const [selectedMethod, setSelectedMethod] = useState("");
+
   const [locationTypes, setLocationTypes] = useState([]);
   const [selectedLocationType, setSelectedLocationType] = useState("");
   const [locationNames, setLocationNames] = useState([]);
@@ -124,7 +126,9 @@ function AdminHazardLocation() {
       console.log(response.data); // Log response data to verify if the data is saved correctly
       setError("");
       setSuccess(true);
+
       resetPageState(); // Reset the page state after successful submission
+
     } catch (error) {
       console.error("Hazard Reporting failed:", error);
       setError(

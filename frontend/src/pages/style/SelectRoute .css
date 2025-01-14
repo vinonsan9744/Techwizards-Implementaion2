@@ -43,7 +43,7 @@ html {
   margin-right: 10%;
 } */
 
-#select-route-input-group-dropdown-2{
+#select-route-input-group-dropdown-2 {
   background-color: #387373;
   color: #e4f2e7;
   font-size: 1.2rem;
@@ -55,13 +55,13 @@ html {
   overflow-y: auto;
 }
 
-#select-route-input{
-  border: .5vh solid #387373;
+#select-route-input {
+  border: 0.5vh solid #387373;
   font-size: 1.2rem;
   color: #387373;
   font-weight: bolder;
 }
-.select-route-input-dropdown-box{
+.select-route-input-dropdown-box {
   width: 100%;
   margin-top: 6%;
   margin-bottom: 6%;
@@ -72,9 +72,9 @@ html {
   width: 40%;
   margin-left: 30%;
   margin-right: 30%;
- margin-bottom: 2%;
+  margin-bottom: 2%;
 }
-.select-route-start-button{
+.select-route-start-button {
   width: 100%;
   height: 100%;
   font-size: xx-large;
@@ -82,8 +82,7 @@ html {
   color: #e4f2e7;
   background-color: #387373;
 }
-.select-route-start-button:hover{
- 
+.select-route-start-button:hover {
   background-color: #043333;
 }
 .select-route-back-button-box {
@@ -92,9 +91,8 @@ html {
   width: 40%;
   margin-left: 30%;
   margin-right: 30%;
- 
 }
-.select-route-back-button{
+.select-route-back-button {
   width: 100%;
   height: 100%;
   font-size: xx-large;
@@ -102,8 +100,7 @@ html {
   color: #e4f2e7;
   background-color: #387373;
 }
-.select-route-back-button:hover{
- 
+.select-route-back-button:hover {
   background-color: #043333;
 }
 
@@ -114,15 +111,15 @@ html {
   justify-content: center;
   align-items: center;
 }
-.right-map-box{
+.right-map-box {
   background-color: rgb(207, 215, 221);
   height: 96%;
   width: 100%;
- margin-top: 2%;
+  margin-top: 2%;
 }
 
 .right-map-box .route-image {
-  width: 100%; 
-  height: 100%; 
-  border-radius: 8px; 
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
 }
