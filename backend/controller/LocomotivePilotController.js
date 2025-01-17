@@ -18,14 +18,14 @@ const createTransporter = () => {
 };
 
 // Function to send a welcome email
-const sendWelcomeEmail = async (locomotiveName, locomotiveEmail, password) => {
+const sendWelcomeEmail = async (locomotiveName, locomotiveEmail, locomotivePilotID, password) => {
     const transporter = createTransporter();
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: locomotiveEmail,
         subject: 'Welcome to Railway Safety System - Your Credentials',
-        text: `Dear ${locomotiveName},\n\nYour account has been created successfully!\nHere are your login credentials:\n\nEmail: ${locomotiveEmail}\nPassword: ${password}\n\nPlease change your password after logging in for security reasons.\n\nBest regards,\nRailway Safety System Team`,
+        text: `Dear ${locomotiveName},\n\nYour account has been created successfully!\nHere are your login credentials:\n\nLocomotive Pilot ID: ${locomotivePilotID}\nEmail: ${locomotiveEmail}\nPassword: ${password}\n\nPlease change your password after logging in for security reasons.\n\nBest regards,\nRailway Safety System Team`,
     };
 
     try {
@@ -36,6 +36,7 @@ const sendWelcomeEmail = async (locomotiveName, locomotiveEmail, password) => {
         throw new Error('Failed to send email');
     }
 };
+
 
 // Function to generate a random OTP
 const generateOtp = () => {

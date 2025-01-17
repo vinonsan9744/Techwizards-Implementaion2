@@ -3,16 +3,25 @@ import { DataTypes } from "sequelize";
 export const createLocomotivePilotHazardModel = (sequelize) => {
   const LocomotivePilotHazard = sequelize.define('LocomotivePilotHazard', {
     HazardID: {
-      type: DataTypes.STRING(6), // Ensure it's a string with 6 characters (e.g., ELE001, BUL001)
-      primaryKey: true // Set as primary key
+      type: DataTypes.STRING(6),
+      primaryKey: true,
+      unique: true,
     },
     locomotivePilotID: {
-      type: DataTypes.STRING(6), // Assuming it's a string, adjust type if needed
+      type: DataTypes.STRING(6),
       allowNull: false,
+      references: {
+        model: 'LocomotivePilots',
+        key: 'locomotivePilotID',
+      },
     },
-    locationName: {
-      type: DataTypes.STRING,
+    locationId: {  // Updated to reference locationId instead of locationName
+      type: DataTypes.STRING(10),
       allowNull: false,
+      references: {
+        model: 'Locations',
+        key: 'locationId',  // Correctly referencing locationId
+      },
     },
     HazardType: {
       type: DataTypes.STRING,
@@ -23,38 +32,32 @@ export const createLocomotivePilotHazardModel = (sequelize) => {
       allowNull: false,
     },
     description: {
-      type: DataTypes.TEXT, // Can hold larger descriptions
-    }
+      type: DataTypes.TEXT,
+    },
   }, {
     hooks: {
-      // Sequelize hook to automatically generate HazardID before creating the entry
-      beforeCreate: async (hazard) => {
-        // Capitalize the first three letters of HazardType
+      beforeCreate: async (hazard, options) => {
+        console.log('Generating HazardID...');
         const hazardPrefix = hazard.HazardType.substring(0, 3).toUpperCase();
 
-        // Fetch all hazards with the same HazardType
-        const hazards = await LocomotivePilotHazard.findAll({
+        const lastHazard = await LocomotivePilotHazard.findOne({
           where: { HazardType: hazard.HazardType },
-          order: [['HazardID', 'DESC']]
+          order: [['HazardID', 'DESC']],
+          transaction: options.transaction,
         });
 
-        // If there’s no existing record with that type, start from 001
-        let newIdNumber = "001";
-        if (hazards.length > 0) {
-          const lastHazard = hazards[0].HazardID;
-          const lastIdNumber = parseInt(lastHazard.slice(3), 10);
+        let newIdNumber = '001';
+        if (lastHazard) {
+          const lastIdNumber = parseInt(lastHazard.HazardID.slice(3), 10);
           newIdNumber = String(lastIdNumber + 1).padStart(3, '0');
         }
 
-        // Generate the new HazardID
         hazard.HazardID = `${hazardPrefix}${newIdNumber}`;
-      }
-    }
+        console.log('Generated HazardID:', hazard.HazardID);
+      },
+    },
+    timestamps: true,
   });
-
-
-  
 
   return LocomotivePilotHazard;
 };
-
