@@ -19,7 +19,7 @@ import AdminHazardLocation from "./pages/react/AdminHazardLocation ";
 import UpdateHazard from "./pages/react/UpdateHazard";
 import Checking from "./pages/react/Checking";
 import AdminViewHazardLocation from "./pages/react/AdminViewHazardLocation";
-import HazardUpdateAutomatically from "./pages/react/HazardUpdateAutomatically";
+import ChangePassword from "./pages/react/ChangePassword";
 import App from "./App";
 
 
@@ -82,8 +82,8 @@ const router = createBrowserRouter([
     element: <Checking />,
   },
   {
-    path: "/hazardupdate",
-    element: <HazardUpdateAutomatically />,
+    path: "/changepassword",
+    element: <ChangePassword />,
   },
   {
     path: "/app",
