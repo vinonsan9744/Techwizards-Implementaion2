@@ -139,3 +139,35 @@ export const getHazardById = async (req, res) => {
     }
   };
   
+  // Delete a hazard by ID
+export const deleteHazardById = async (req, res) => {
+  const { HazardID } = req.params;
+
+  try {
+      // Validate input
+      if (!HazardID) {
+          return res.status(400).json({ error: "Hazard ID is required." });
+      }
+
+      // Find the hazard by ID
+      const hazard = await LocomotivePilotHazardModel.findOne({ where: { HazardID } });
+
+      if (!hazard) {
+          return res.status(404).json({ error: "Hazard not found." });
+      }
+
+      // Delete the hazard
+      await LocomotivePilotHazardModel.destroy({ where: { HazardID } });
+
+      return res.status(200).json({
+          success: true,
+          message: `Hazard with ID ${HazardID} deleted successfully.`,
+      });
+  } catch (error) {
+      console.error("Error deleting hazard:", error);
+      return res.status(500).json({
+          error: "Internal server error",
+          details: error.message || error,
+      });
+  }
+};

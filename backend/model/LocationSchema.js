@@ -1,21 +1,20 @@
 import { DataTypes, Op } from 'sequelize';
 
-const generateLocationId = async (locationType, Location) => {
-    const prefix = locationType.slice(0, 3).toUpperCase(); // Take first 3 characters of locationType
+const generateLocationId = async (locationType, Location, transaction) => {
+    const prefix = locationType.slice(0, 3).toUpperCase();
 
-    // Fetch the latest locationId with the same prefix (for systematic generation)
     const lastLocation = await Location.findOne({
         where: {
-            locationId: { [Op.like]: `${prefix}%` } // Find IDs starting with prefix
+            locationId: { [Op.like]: `${prefix}%` },
         },
-        order: [['createdAt', 'DESC']] // Sort by creation date to get the latest
+        order: [['createdAt', 'DESC']],
+        transaction,
     });
 
-    let suffix = '001'; // Default suffix if no matching record is found
+    let suffix = '001';
     if (lastLocation) {
-        const lastId = lastLocation.locationId;
-        const lastSuffix = parseInt(lastId.slice(3)); // Extract the numeric part
-        suffix = (lastSuffix + 1).toString().padStart(3, '0'); // Increment and pad with zeros
+        const lastSuffix = parseInt(lastLocation.locationId.slice(3), 10);
+        suffix = (lastSuffix + 1).toString().padStart(3, '0');
     }
 
     return `${prefix}${suffix}`;
@@ -24,30 +23,34 @@ const generateLocationId = async (locationType, Location) => {
 export const createLocationModel = (sequelize) => {
     const Location = sequelize.define('Location', {
         locationId: {
-            type: DataTypes.STRING(10),  // Length to fit the ID structure (prefix + numeric part)
-            primaryKey: true,  // Set as the primary key
-            unique: true,      // Ensure it is unique
+            type: DataTypes.STRING(10),
+            primaryKey: true,
+            unique: true,
         },
         locationType: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
+            validate: {
+                notEmpty: true,
+            },
         },
         locationName: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
+            unique: true, // Add unique constraint if needed
         },
         locationContactNumber: {
             type: DataTypes.STRING,
             allowNull: false,
             validate: {
-                len: [9, 12]
-            }
+                len: [9, 12],
+            },
         },
     });
 
-    // Pre-save hook to automatically generate locationId based on locationType
-    Location.beforeCreate(async (location) => {
-        location.locationId = await generateLocationId(location.locationType, Location);
+    Location.beforeCreate(async (location, options) => {
+        const transaction = options.transaction; // Use transaction for consistency
+        location.locationId = await generateLocationId(location.locationType, Location, transaction);
     });
 
     return Location;
