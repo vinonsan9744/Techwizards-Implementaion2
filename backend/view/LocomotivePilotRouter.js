@@ -10,13 +10,19 @@ import {
     sendOTP, 
     verifyOtp,
     resetPassword,
-    updatePasswordById
+    updatePasswordById,
+    deleteAllLocomotivePilots,
+    deleteLocomotivePilotById,
+    getUserIdByEmail
 }
     from "../controller/LocomotivePilotController.js";
 
 const router = express.Router();
 router.get("/getAll", getAllLocomotivePilots);
+router.get("/getByEmail/:email", getAllLocomotivePilots);
 router.post("/addlocomotivePilot", addLocomotivePilot);
+router.delete("/deletelocomotivePilot", deleteAllLocomotivePilots);
+router.delete("/deletePilotById/:id", deleteLocomotivePilotById);
 router.get('/getByLPid/:id', getLocomotivePilotById);
 router.patch('/:id', updateLocomotivePilot);
 router.post('/login', locomotivePilotLogin);

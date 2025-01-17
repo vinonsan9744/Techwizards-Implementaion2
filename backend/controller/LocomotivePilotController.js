@@ -20,12 +20,14 @@ const createTransporter = () => {
 // Function to send a welcome email
 const sendWelcomeEmail = async (locomotiveName, locomotiveEmail, password) => {
     const transporter = createTransporter();
+    const encodedEmail = encodeURIComponent(locomotiveEmail); // Encoding the email to prevent issues with special characters
+    const passwordResetLink = `http://localhost:5173/changepassword?email=${encodedEmail}`; // Link to your ChangePassword page
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: locomotiveEmail,
         subject: 'Welcome to Railway Safety System - Your Credentials',
-        text: `Dear ${locomotiveName},\n\nYour account has been created successfully!\nHere are your login credentials:\n\nEmail: ${locomotiveEmail}\nPassword: ${password}\n\nPlease change your password after logging in for security reasons.\n\nBest regards,\nRailway Safety System Team`,
+        text: `Dear ${locomotiveName},\n\nYour account has been created successfully!\nHere are your login credentials:\n\nEmail: ${locomotiveEmail}\nPassword: ${password}\n\nFor security reasons, please change your password after logging in.\n\nIf you want To change your password, click the following link: ${passwordResetLink}\n\nBest regards,\nRailway Safety System Team`,
     };
 
     try {
@@ -36,6 +38,7 @@ const sendWelcomeEmail = async (locomotiveName, locomotiveEmail, password) => {
         throw new Error('Failed to send email');
     }
 };
+
 
 // Function to generate a random OTP
 const generateOtp = () => {
@@ -345,6 +348,67 @@ export const updatePasswordById = async (req, res) => {
         return res.status(200).json({ message: "Password updated successfully" });
     } catch (error) {
         console.error("Error updating password:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+// Delete all locomotive pilots
+export const deleteAllLocomotivePilots = async (req, res) => {
+    try {
+        const deletedPilots = await LocomotivePilotModel.destroy({
+            where: {},
+        });
+
+        if (deletedPilots === 0) {
+            return res.status(404).json({ message: "No locomotive pilots found to delete" });
+        }
+
+        return res.status(200).json({ message: `${deletedPilots} locomotive pilots deleted successfully` });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+// Delete locomotive pilot by ID
+export const deleteLocomotivePilotById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedPilot = await LocomotivePilotModel.destroy({
+            where: { locomotivePilotID: id },
+        });
+
+        if (deletedPilot === 0) {
+            return res.status(404).json({ message: "Locomotive pilot not found" });
+        }
+
+        return res.status(200).json({ message: "Locomotive pilot deleted successfully" });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+// Fetch user ID by email
+export const getUserIdByEmail = async (req, res) => {
+    const { email } = req.query; // Extract email from query parameters
+    if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+    }
+
+    try {
+        // Search for a user with the specified email
+        const user = await LocomotivePilotModel.findOne({ email: email });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Respond with the user ID
+        return res.status(200).json({ userId: user._id });
+    } catch (error) {
+        console.error(error);
         return res.status(500).json({ error: "Internal server error" });
     }
 };
