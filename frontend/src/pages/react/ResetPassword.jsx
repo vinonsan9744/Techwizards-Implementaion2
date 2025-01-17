@@ -307,7 +307,7 @@ function ResetPassword() {
             </>
           )}
 
-              {loading ? ( // Show loading state
+              {loading ? ( // Show loading state1
                 <p>Loading...</p>
               ) : (
                 <Button
