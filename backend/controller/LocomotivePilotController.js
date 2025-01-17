@@ -18,7 +18,7 @@ const createTransporter = () => {
 };
 
 // Function to send a welcome email
-const sendWelcomeEmail = async (locomotiveName, locomotiveEmail, password) => {
+const sendWelcomeEmail = async (locomotiveName, locomotiveEmail, locomotivePilotID, password) => {
     const transporter = createTransporter();
     const encodedEmail = encodeURIComponent(locomotiveEmail); // Encoding the email to prevent issues with special characters
     const passwordResetLink = `http://localhost:5173/changepassword?email=${encodedEmail}`; // Link to your ChangePassword page
@@ -27,7 +27,9 @@ const sendWelcomeEmail = async (locomotiveName, locomotiveEmail, password) => {
         from: process.env.EMAIL_USER,
         to: locomotiveEmail,
         subject: 'Welcome to Railway Safety System - Your Credentials',
+
         text: `Dear ${locomotiveName},\n\nYour account has been created successfully!\nHere are your login credentials:\n\nEmail: ${locomotiveEmail}\nPassword: ${password}\n\nFor security reasons, please change your password after logging in.\n\nIf you want To change your password, click the following link: ${passwordResetLink}\n\nBest regards,\nRailway Safety System Team`,
+
     };
 
     try {

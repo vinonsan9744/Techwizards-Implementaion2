@@ -100,57 +100,68 @@ export const getTasksByLocationName = async (req, res) => {
   }
 };
 
-// Get next location by locationName
+
+
+// Get the next location by locationName
 export const getNextLocation = async (req, res) => {
   const { locationName } = req.params;
 
   console.log("Received locationName:", locationName);
 
+  // Validate locationName
+  if (!locationName || typeof locationName !== "string") {
+    return res.status(400).json({ error: "Invalid locationName provided" });
+  }
+
   try {
-    // Find the current location with the provided locationName (case-insensitive search)
+    // Find the current location with the provided locationName (case-insensitive)
     const currentLocation = await LocationModel.findOne({
       where: {
         locationName: {
-          [Op.iLike]: locationName, // Case-insensitive match (PostgreSQL specific)
+          [Op.iLike]: locationName.trim(),
         },
       },
     });
 
-    // Check if the current location exists
     if (!currentLocation) {
       return res.status(404).json({ error: "Current location not found" });
     }
 
     console.log("Current location found:", currentLocation);
 
-    // Try to find the next location by locationId in ascending order
+    const { locationType, locationId } = currentLocation;
+
+    // Attempt to find the next location in ascending order with the same locationType
     let nextLocation = await LocationModel.findOne({
       where: {
-        locationId: { [Op.gt]: currentLocation.locationId }, // Find next by ascending locationId
+        locationId: { [Op.gt]: locationId }, // Find the next location
+        locationType, // Ensure it matches the current locationType
       },
-      order: [["locationId", "ASC"]], // Ensure ascending order by locationId
+      order: [["locationId", "ASC"]],
     });
 
-    // If no next location is found, try to find the previous location in descending order
+    // Fallback: If no next location, search in descending order
     if (!nextLocation) {
       console.log(
-        "No next location found in ascending order, switching to descending order."
+        "No next location found in ascending order, searching in descending order."
       );
 
       nextLocation = await LocationModel.findOne({
         where: {
-          locationId: { [Op.lt]: currentLocation.locationId }, // Find previous by descending locationId
+          locationId: { [Op.lt]: locationId }, // Find the previous location
+          locationType, // Ensure it matches the current locationType
         },
-        order: [["locationId", "DESC"]], // Ensure descending order by locationId
+        order: [["locationId", "DESC"]],
       });
     }
 
-    // If no location is still found, return a message
     if (!nextLocation) {
       return res
         .status(404)
-        .json({ message: "No next or previous location found" });
+        .json({ message: "No next or previous location found for this type" });
     }
+
+    console.log("Next location found:", nextLocation);
 
     // Send the next or previous location as a response
     return res.status(200).json(nextLocation);
