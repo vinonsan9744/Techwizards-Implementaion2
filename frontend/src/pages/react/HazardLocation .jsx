@@ -24,7 +24,7 @@ function HazardLocation() {
   useEffect(() => {
     const fetchLocationTypes = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/location');
+        const response = await axios.get('http://localhost:8000/location/getAll');
         const uniqueTypes = [...new Set(response.data.map(location => location.locationType))];
         setLocationTypes(uniqueTypes);
       } catch (error) {
@@ -40,7 +40,7 @@ function HazardLocation() {
     const fetchLocationNames = async () => {
       try {
         if (selectedLocationType) {
-          const response = await axios.get(`http://localhost:4000/api/location?locationType=${selectedLocationType}`);
+          const response = await axios.get(`http://localhost:8000/location/getAll?locationType=${selectedLocationType}`);
           const filteredNames = response.data
             .filter(location => location.locationType === selectedLocationType)
             .map(location => location.locationName);
@@ -59,7 +59,7 @@ function HazardLocation() {
     const fetchHazards = async () => {
       try {
         if (selectedLocationName) {
-          const response = await axios.get(`http://localhost:4000/api/hazard/locationName/${selectedLocationName}`);
+          const response = await axios.get(`http://localhost:8000/hazard/locationName/${selectedLocationName}`);
           setHazards(response.data);
           setShowHazards(true); // Show hazards when hazards are fetched
         } else {
@@ -115,7 +115,7 @@ function HazardLocation() {
               />
             </FloatingLabel>
             <Dropdown align="end">
-              <Dropdown.Toggle as={Button} variant="outline-secondary" id="update-hazard-input-group-dropdown-2" className="custom-dropdown-toggle">
+              <Dropdown.Toggle as={Button} variant="outline-secondary" id="hazard-location-update-hazard-input-group-dropdown-2" className="custom-dropdown-toggle">
                 <FaRoute />
               </Dropdown.Toggle>
               <Dropdown.Menu className="LP-hazard-location-scrollable-dropdown-menu">
@@ -181,7 +181,7 @@ function HazardLocation() {
                     {hazards.length > 0 ? (
                       hazards.map((hazard, index) => (
                         <div key={index} className="hazard-location-possible-hazard-box2 container-flex">
-                          <h2 className="hazard-location-possible-content-heading">{hazard.hazardType}</h2>
+                          <h2 className="hazard-location-possible-content-heading">{hazard.HazardType}</h2>
                         </div>
                       ))
                     ) : (

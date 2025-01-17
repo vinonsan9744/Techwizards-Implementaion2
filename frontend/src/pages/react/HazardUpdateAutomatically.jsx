@@ -1,417 +1,207 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import './../style/HazardUpdate.css';
-import { RiMessage2Fill } from 'react-icons/ri';
 import Button from 'react-bootstrap/Button';
-import Badge from 'react-bootstrap/Badge';
-import axios from 'axios';
-import Modal from 'react-bootstrap/Modal';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Dropdown from 'react-bootstrap/Dropdown';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { FaRoute } from "react-icons/fa";
 import { MdAddLocationAlt } from "react-icons/md";
 
 function HazardUpdateAutomatically() {
-    const [hazardCount, setHazardCount] = useState(0);
-  const [notifications, setNotifications] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedNotification, setSelectedNotification] = useState(null);
-  const [inputLocation, setInputLocation] = useState('');
-  const [inputHazard, setInputHazard] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showErrorModal, setShowErrorModal] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false); 
-  const [showDeclineConfirmModal, setShowDeclineConfirmModal] = useState(false);
-  const [selectedHazardId, setSelectedHazardId] = useState(null);
-  const navigate = useNavigate();
+   const navigate = useNavigate();
+    const [locationTypes, setLocationTypes] = useState([]);
+    const [selectedLocationType, setSelectedLocationType] = useState('');
+    const [locationNames, setLocationNames] = useState([]);
+    const [selectedLocationName, setSelectedLocationName] = useState('');
+    const [hazards, setHazards] = useState([]);
+    const [showHazards, setShowHazards] = useState(false); // State to control hazard display
 
+  // Fetch location types on component mount
   useEffect(() => {
-    try {
-      axios.get('http://localhost:4000/api/locomotivePilotHazard')
-      .then(response => {
-        setHazardCount(response.data.length);
-        setNotifications(response.data);
-      })
-    } catch (error) {
-      console.error('Error fetching hazard data:', error);
-    }
+    const fetchLocationTypes = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/location/getAll');
+        const uniqueTypes = [...new Set(response.data.map(location => location.locationType))];
+        setLocationTypes(uniqueTypes);
+      } catch (error) {
+        console.error('Error fetching location types:', error);
+      }
+    };
+
+    fetchLocationTypes();
   }, []);
 
-  const handleNotificationClick = () => {
-    setShowModal(true);
-  };
-  const handleCloseModal = () => {
-    setShowModal(false);
-  };
-
-  const markAsRead = async (hazardId) => {
-    try {
-      const hazardResponse = await axios.get(`http://localhost:4000/api/locomotivePilotHazard/hazardID/${hazardId}`);
-      setSelectedNotification(hazardResponse.data);
-      setSelectedHazardId(hazardId);
-      setShowModal(false);
-    } catch (error) {
-      console.error('Error fetching hazard or pilot details:', error);
-    }
-  };
-
-  const handleAcceptClick = async (type, value) => {
-    if (type === 'hazard') {
-      setInputHazard(value);
-    } else if (type === 'location') {
-      setInputLocation(value);
-    }
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const day = date.getUTCDate();
-    const monthIndex = date.getUTCMonth();
-    const year = date.getUTCFullYear();
-    
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June", 
-      "July", "August", "September", "October", "November", "December"
-    ];
-  
-    const month = monthNames[monthIndex];
-    
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
-    
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const formattedHours = hours % 12 || 12;
-    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-    
-    const time = `${formattedHours}:${formattedMinutes} ${period}`;
-  
-    return { day, month, year, time };
-  };
-
- 
-
-  const handleConfirm = () => {
-    setShowConfirmModal(false);
-    // Proceed with the form submission
-    submitData();
-  };
-
-  const handleCancel = () => {
-    setShowConfirmModal(false);
-  };
-
-  const submitData = async () => {
-    try {
-      // Perform the POST request
-      const postResponse = await axios.post('http://localhost:4000/api/hazard', {
-        locationName: inputLocation,
-        hazardType: inputHazard
-      });
-      console.log('POST response:', postResponse.data); // Log response data
-  
-      // Check if a hazard ID is selected for deletion
-      if (selectedHazardId) {
-        // Perform the DELETE request
-        await axios.delete(`http://localhost:4000/api/locomotivePilotHazard/hazardID/${selectedHazardId}`);
-        console.log('DELETE successful'); // Log success message
+  // Fetch location names based on selected location type
+  useEffect(() => {
+    const fetchLocationNames = async () => {
+      try {
+        if (selectedLocationType) {
+          const response = await axios.get(`http://localhost:8000/location/getAll?locationType=${selectedLocationType}`);
+          const filteredNames = response.data
+            .filter(location => location.locationType === selectedLocationType)
+            .map(location => location.locationName);
+          setLocationNames(filteredNames);
+        }
+      } catch (error) {
+        console.error('Error fetching location names:', error);
       }
-  
-      // Update state after successful operations
-      setSuccessMessage('Hazard data saved successfully and hazard deleted if applicable!');
-      setErrorMessage('');
-      setInputLocation('');
-      setInputHazard('');
-  
-      // Navigate to a different page if needed
-      navigate('/adminhomepage');
-  
-    } catch (error) {
-      console.error('Operation failed:', error);
-      if (error.response && error.response.data && error.response.data.error) {
-        setErrorMessage(error.response.data.error); // Set error message from server response
-      } else {
-        setErrorMessage('Failed to save hazard data or delete hazard. Please try again.'); // Set a generic error message
+    };
+
+    fetchLocationNames();
+  }, [selectedLocationType]);
+
+  // Fetch hazards based on selected location name
+  useEffect(() => {
+    const fetchHazards = async () => {
+      try {
+        if (selectedLocationName) {
+          const response = await axios.get(`http://localhost:8000/hazard/locationName/${selectedLocationName}`);
+          setHazards(response.data);
+          setShowHazards(true); // Show hazards when hazards are fetched
+        } else {
+          setHazards([]);
+          setShowHazards(false); // Hide hazards when location name is cleared
+        }
+      } catch (error) {
+        console.error('Error fetching hazards:', error);
       }
-      setSuccessMessage('');
-      setShowErrorModal(true); // Show error modal
-    }
-  };
-  
+    };
 
+    fetchHazards();
+  }, [selectedLocationName]);
 
-
-  const handleDeclineConfirm = async () => {
-    setShowDeclineConfirmModal(false);
-    try {
-      await axios.delete(`http://localhost:4000/api/locomotivePilotHazard/hazardID/${selectedHazardId}`);
-      setSuccessMessage('Hazard deleted successfully!');
-      setNotifications(notifications.filter(notification => notification.hazardID !== selectedHazardId));
-      setSelectedHazardId(null);
-      navigate('/adminhomepage');
-      
-    } catch (error) {
-      console.error('Error deleting hazard:', error);
-      setErrorMessage('Failed to delete hazard. Please try again.');
-    }
+  // Handle selection of location type
+  const handleLocationTypeSelect = (type) => {
+    setSelectedLocationType(type);
+    setSelectedLocationName('');
+    setShowHazards(false); // Hide hazards when location type changes
   };
 
-  const handleDeclineCancel = () => setShowDeclineConfirmModal(false);
-  
+  // Handle selection of location name
+  const handleLocationNameSelect = (name) => {
+    setSelectedLocationName(name);
+  };
 
-  const handleCloseErrorModal = () => setShowErrorModal(false);
+  // Handle clear button click
+  const handleClear = () => {
+    setSelectedLocationType('');
+    setSelectedLocationName('');
+    setHazards([]);
+    setShowHazards(false); // Hide hazards when clear button is clicked
+  };
+
   return (
     <>
-        <h1>
-        <div className="container-flex vh-100">
-        <div className="row vh-100">
-          <div className="ApproveHazard-main-left col-sm-12 col-md-6 col-lg-6 col-xl-6">
-            <div className="ApproveHazard-header-box container-flex w-100 vh-30">
-              <h1 className="ApproveHazard-title">Hazard Update</h1>
-            </div>
-            <div className="ApproveHazard-newhazard-box container-flex vh-30">
+       <div className="container-flex vh-100">
+      <div className="row vh-100">
+        {/* Left side box */}
+        <div className="adminViewhazard-location-main-left col-sm-12 col-md-6 col-lg-6 col-xl-6">
+          <div className="adminViewhazard-LP-hazard-location-header-box container-flex w-100 vh-30">
+            <h1 className="adminViewhazard-LP-hazard-location-header-title">View Hazard Location</h1>
+          </div>
+
+          <InputGroup className="adminViewhazard-update-hazard-input-dropdown-box mt-5">
+            <FloatingLabel controlId="floatingTextarea2" label="Select Route" className="custom-floating-label">
+              <Form.Control
+                placeholder="selectedLocationType"
+                style={{ height: '5px', backgroundColor: 'white' }}
+                aria-label="Text input with dropdown button"
+                id="adminViewhazard-update-hazard-input"
+                value={selectedLocationType}
+                onChange={(e) => setSelectedLocationType(e.target.value)} 
+              />
+            </FloatingLabel>
+            <Dropdown align="end">
+              <Dropdown.Toggle as={Button} variant="outline-secondary" id="adminViewhazard-update-hazard-input-group-dropdown-2" className="custom-dropdown-toggle">
+                <FaRoute />
+              </Dropdown.Toggle>
+              <Dropdown.Menu className="adminViewhazard-LP-hazard-location-scrollable-dropdown-menu">
+                {locationTypes.map((type, index) => (
+                  <Dropdown.Item key={index} onClick={() => handleLocationTypeSelect(type)}>{type}</Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+          </InputGroup>
+
+          <InputGroup className="adminViewhazard-update-hazard-input-dropdown-box mt-5 mb-5">
+            <FloatingLabel controlId="floatingTextarea2" label="Location">
+              <Form.Control
+                placeholder="Leave a comment here"
+                style={{ height: '5px' }}
+                aria-label="Text input with dropdown button"
+                id="adminViewhazard-update-hazard-input"
+                
+                value={selectedLocationName}
+                onChange={(e) => setSelectedLocationName(e.target.value)} 
+              />
+            </FloatingLabel>
+            <Dropdown align="end">
+              <Dropdown.Toggle as={Button} variant="outline-secondary" id="adminViewhazard-update-hazard-input-group-dropdown-2" className="custom-dropdown-toggle">
+                <MdAddLocationAlt />
+              </Dropdown.Toggle>
+              <Dropdown.Menu className="adminViewhazard-LP-hazard-location-scrollable-dropdown-menu">
+                {locationNames.map((name, index) => (
+                  <Dropdown.Item key={index} onClick={() => handleLocationNameSelect(name)}>{name}</Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+          </InputGroup>
+
+          <div className="adminViewhazard-LP-hazard-location-button-box1 container-flex vh-30">
+            <Button variant="dark" className="adminViewhazard-LP-hazard-location-search-button" onClick={handleClear}>Clear</Button>
+          </div>
+
+          <div className="adminViewhazard-LP-hazard-location-button-box2 container-flex vh-30">
+            <Button variant="dark" className="adminViewhazard-LP-hazard-location-back-button"  onClick={() => navigate('/adminhomepage')}>Back</Button>
+          </div>
+        </div>
+
+        {/* Right side box */}
+        <div className="adminViewhazard-location-main-right col-sm-12 col-md-6 col-lg-6 col-xl-6">
+          <div className="adminViewhazard-location-location-box container-flex">
+            <h1 className="adminViewhazard-location-heading">
+              {selectedLocationType && selectedLocationName ? selectedLocationName : 'Select the location'}
+            </h1>
+          </div>
+
+          {selectedLocationType && selectedLocationName &&  (
+            <div className="adminViewhazard-location-possible-main-box container-flex">
               <div className="row">
-                <div className="ApproveHazard-newhazard-heading-box container-flex">
-                  <div className="ApproveHazard-newhazard-heading-title-box container-flex">
-                    <h1>New Hazards Update</h1>
-                  </div>
-                  <div className="ApproveHazard-newhazard-heading-notification-box container-flex">
-                    <button
-                      type="button"
-                      className="ApproveHazard-notification-button-box-icon btn btn-primary position-relative"
-                      onClick={handleNotificationClick}
-                    >
-                      <RiMessage2Fill className='ApproveHazard-message-icon' />
-                      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        <Badge bg="danger" className="ApproveHazard-badge-position">{hazardCount}</Badge>
-                        <span className="visually-hidden">unread messages</span>
-                      </span>
-                    </button>
-                  </div>
+                <div className="adminViewhazard-location-possible-header-box container-flex">
+                  <h2 className="adminViewhazard-location-possible-header-heading">
+                    Possible Hazards
+                  </h2>
                 </div>
-                <div className="ApproveHazard-newhazard-content-box container-flex">
+
+                <div className="adminViewhazard-location-possible-hazard-box container-flex">
                   <div className="row">
-                    <div className="ApproveHazard-detail-box container-flex">
-                      <div className="ApproveHazard-detail-name-box container-flex">
-                        <p>Location:</p>
-                        <p>{selectedNotification && `${selectedNotification.locomotivePilotName}`}</p>
-                      </div>
-                      <div className="ApproveHazard-detail-loco-phone-box container-flex">
-                      <p>Date:</p>
-                      <p>{selectedNotification && `${selectedNotification.locomotivePilotPhoneNo}`}</p>
-                       
-                      </div>
-                      <div className="ApproveHazard-detail-station-phone-box container-flex">
-                      <p>Time:</p>
-                      <p>{selectedNotification && `${selectedNotification.locationContactNumber}`}</p>
-                      </div>
-                    </div>
-                    <div className="HazardUpdate-description-box container-flex">
-                      <p>
-                        {selectedNotification && (() => {
-                          const { day, month, year, time } = formatDate(selectedNotification.time);
-                          return `IN ${selectedNotification.locationName}, On ${day} ${month} ${year} at ${time}, ${selectedNotification.hazardType} hazard was reported`;
-                        })()}
-                      </p>
-                    </div>
-                    <div className="ApproveHazard-accept-box container-flex">
-                      <div className="row">
-                        <div className="ApproveHazard-hazard-btn-box container-flex">
-                          
-                          <div className="HazardUpdate-hazard-right-button-box">
-                            <Button
-                              className="HazardUpdate-hazard-right-button"
-                              variant="outline-dark"
-                              onClick={() => handleAcceptClick('hazard', selectedNotification.hazardType)}
-                            >
-                              Accept
-                            </Button>
-                          </div>
-
-                          <div className="HazardUpdate-hazard-right-button-box">
-                            <Button
-                              className="HazardUpdate-hazard-right-button"
-                              variant="outline-dark"
-                              onClick={() => handleAcceptClick('hazard', selectedNotification.hazardType)}
-                            >
-                              Decline
-                            </Button>
-                          </div>
-
-                         
-
+                    {hazards.length > 0 ? (
+                      hazards.map((hazard, index) => (
+                        <div key={index} className="adminViewhazard-location-possible-hazard-box2 container-flex">
+                          <h2 className="adminViewhazard-location-possible-content-heading">{hazard.HazardType}</h2>
                         </div>
-
-                       
+                      ))
+                    ) : (
+                      <div className="adminViewhazard-location-possible-hazard-box2 container-flex">
+                        <h2 className="adminViewhazard-location-possible-content-heading">No hazards</h2>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="ah-main-right col-sm-12 col-md-6 col-lg-6 col-xl-6">
-            <div className="hazardupdate-right-header-box container-flex vh-30">
-              <h1>View Hazard</h1>
-            </div>
-            <div className='hazardupdate-line-box'></div>
-            <InputGroup className="update-hazard-input-dropdown-box mt-5">
-      <FloatingLabel controlId="floatingTextarea2" label="Select Route">
-        <Form.Control
-          placeholder="Leave a comment here"
-          style={{ height: '5px' }}
-          aria-label="Text input with dropdown button"
-          id="update-hazard-input"
-        
-        />
-      </FloatingLabel>
-      <Dropdown align="end">
-        <Dropdown.Toggle as={Button} variant="outline-secondary" id="update-hazard-input-group-dropdown-21" className="custom-dropdown-toggle">
-          <FaRoute />
-        </Dropdown.Toggle>
-        <Dropdown.Menu className="LP-hazard-location-scrollable-dropdown-menu">
-       
-        </Dropdown.Menu>
-      </Dropdown>
-    </InputGroup>
-           
-    <InputGroup className="update-hazard-input-dropdown-box mt-5">
-      <FloatingLabel controlId="floatingTextarea2" label="Location">
-        <Form.Control
-          placeholder="Leave a comment here"
-          style={{ height: '5px' }}
-          aria-label="Text input with dropdown button"
-          id="update-hazard-input"
-        
-        />
-      </FloatingLabel>
-      <Dropdown align="end">
-        <Dropdown.Toggle as={Button} variant="outline-secondary" id="update-hazard-input-group-dropdown-21" className="custom-dropdown-toggle">
-          <MdAddLocationAlt />
-        </Dropdown.Toggle>
-        <Dropdown.Menu className="LP-hazard-location-scrollable-dropdown-menu">
-       
-        </Dropdown.Menu>
-      </Dropdown>
-    </InputGroup>
-
-                        <div className='hazardupdate-clear-button'> 
-                          <Button
-                              className="HazardUpdate-hazard-clear-button"
-                              variant="outline-dark"
-                              onClick={() => handleAcceptClick('hazard', selectedNotification.hazardType)}
-                            >
-                              Clear
-                            </Button>
-                        </div>
-
-                        <div className='hazardupdate-clear-button'> 
-                          <Button
-                              className="HazardUpdate-hazard-clear-button"
-                              variant="outline-dark"
-                              onClick={() => navigate('/adminhomepage')}
-                            >
-                              Back
-                            </Button>
-                        </div>
-
-                        <div className='hazardupdate-clear-button'> 
-                          <Button
-                              className="HazardUpdate-hazard-clear-button"
-                              variant="outline-dark"
-                              onClick={() => handleAcceptClick('hazard', selectedNotification.hazardType)}
-                            >
-                              Generate Report
-                            </Button>
-                        </div>
-
-           
-          </div>
+          )}
         </div>
       </div>
-
-      {successMessage && (
-        <Modal show={true} onHide={() => setSuccessMessage('')}>
-          <Modal.Header closeButton>
-            <Modal.Title>Success</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>{successMessage}</Modal.Body>
-          <Modal.Footer>
-            <Button variant="success" onClick={() => setSuccessMessage('')}>
-              Close
-            </Button>
-            
-          </Modal.Footer>
-        </Modal>
-      )}
-
-      {errorMessage && (
-        <Modal show={showErrorModal} onHide={handleCloseErrorModal}>
-          <Modal.Header closeButton>
-            <Modal.Title>Error</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>{errorMessage}</Modal.Body>
-          <Modal.Footer>
-            <Button variant="danger" onClick={handleCloseErrorModal}>
-              Close
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      )}
-
-      <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Hazard Reports</Modal.Title>
-        </Modal.Header>
-        <Modal.Body style={{ maxHeight: '200px', overflowY: 'auto' }}>
-          {notifications.map((notification, index) => (
-            <div key={index} className="notification-item">
-              <p>{`Hazard Reporting ${index + 1}`}</p>
-              <Button variant="outline-success" onClick={() => markAsRead(notification.hazardID)}>
-                View Report
-              </Button>
-            </div>
-          ))}
-        </Modal.Body>
-      </Modal>
-
-      {/* Confirmation Modal */}
-      <Modal show={showConfirmModal} onHide={handleCancel}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>Are you sure you want to save the data?</Modal.Body>
-        <Modal.Footer>
-          <Button variant="danger" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button variant="success" onClick={handleConfirm}>
-            Confirm
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-
-      <Modal show={showDeclineConfirmModal} onHide={handleDeclineCancel}>
-  <Modal.Header closeButton>
-    <Modal.Title>Confirm Decline</Modal.Title>
-  </Modal.Header>
-  <Modal.Body>Are you sure you want to delete this hazard?</Modal.Body>
-  <Modal.Footer>
-    <Button variant="danger" onClick={handleDeclineCancel}>
-      Cancel
-    </Button>
-    <Button variant="success" onClick={handleDeclineConfirm}>
-      Confirm
-    </Button>
-  </Modal.Footer>
-</Modal>
-        </h1>
+    </div>
     </>
-  )
+
+  );
+
 }
 
 export default HazardUpdateAutomatically

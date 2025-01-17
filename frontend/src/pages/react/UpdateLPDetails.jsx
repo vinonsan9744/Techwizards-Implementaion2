@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from 'react';
 import "./../style/UpdateLPDetails.css";
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -7,7 +8,7 @@ import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Button from 'react-bootstrap/Button';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
-import Modal from 'react-bootstrap/Modal'; // Import Modal component
+import Modal from 'react-bootstrap/Modal';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -15,33 +16,32 @@ function UpdateLPDetails() {
 
   const navigate = useNavigate();
 
-  
   const [selectedPilotId, setSelectedPilotId] = useState('');
   const [lpName, setLPName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [initialLPName, setInitialLPName] = useState('');
   const [initialPhoneNumber, setInitialPhoneNumber] = useState('');
   const [initialEmail, setInitialEmail] = useState('');
-
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [modalType, setModalType] = useState('');
-
   const [pilotIds, setPilotIds] = useState([]);
+  const [allPilotDetails, setAllPilotDetails] = useState([]);
+
   useEffect(() => {
     const fetchPilotIds = async () => {
       try {
         const response = await axios.get('http://localhost:8000/locomotivePilot/getAll');
         setPilotIds(response.data.map(pilot => pilot.locomotivePilotID));
+        setAllPilotDetails(response.data);
       } catch (error) {
         console.error('Error fetching pilot IDs:', error);
       }
     };
     fetchPilotIds();
   }, []);
-
-
 
   const handlePilotIdSelect = async (id) => {
     setSelectedPilotId(id);
@@ -60,21 +60,24 @@ function UpdateLPDetails() {
     }
   };
 
-  
   const handleSubmit = async () => {
     try {
-      const response = await axios.patch(`http://localhost:8000/locomotivePilot/${selectedPilotId}`, {
+      await axios.patch(`http://localhost:8000/locomotivePilot/${selectedPilotId}`, {
         locomotiveName: lpName,
         locomotivePhoneNo: phoneNumber,
         locomotiveEmail: email
       });
-
       setModalMessage('Pilot details updated successfully.');
       setModalType('success');
       setShowModal(true);
 
+      // Update the right-side table dynamically
+      setAllPilotDetails(prevDetails => prevDetails.map(pilot => 
+        pilot.locomotivePilotID === selectedPilotId
+          ? { ...pilot, locomotiveName: lpName, locomotivePhoneNo: phoneNumber, locomotiveEmail: email }
+          : pilot
+      ));
     } catch (error) {
-
       setModalMessage('Error updating pilot details. Please try again.');
       setModalType('error');
       setShowModal(true);
@@ -85,8 +88,7 @@ function UpdateLPDetails() {
     <>
       <div className="container-flex vh-100">
         <div className="row vh-100">
-          
-          {/* left side start from here*/}
+          {/* Left side */}
           <div className="UpdateLPDetails-main-left col-sm-12 col-md-6 col-lg-6 col-xl-6">
             <div className="UpdateLPDetails-header-box container-flex w-100 vh-30">
               <div className="UpdateLPDetails-title"><h1>Locomotive Pilot Details Update</h1></div>
@@ -104,7 +106,6 @@ function UpdateLPDetails() {
                   />
                 </FloatingLabel>
                 <DropdownButton
-
                   variant="outline-secondary"
                   title=" LP Id"
                   id="input-group-dropdown-2"
@@ -163,80 +164,51 @@ function UpdateLPDetails() {
             </div>
           </div>
 
-          {/* right side start from here*/}
+          {/* Right side */}
           <div className="UpdateLPDetails-main-right col-sm-12 col-md-6 col-lg-6 col-xl-6">
             <div className="UpdateLPDetails-heading-box container-flex">
               <h1 className="UpdateLPDetails-heading-box-title1">Locomotive Pilot Details</h1>
             </div>
             <div className="UpdateLPDetails-heading-line container-flex"></div>
 
-            <div>
-              <Form.Floating className="mb-3">
-                <Form.Control
-                  id="floatingId"
-                  type="text"
-                  name="id"
-                  value={selectedPilotId}
-                  placeholder="ID"
-                  className="UpdateLPDetails-input-text-box"
-                  readOnly
-                />
-                <label htmlFor="floatingId">ID</label>
-              </Form.Floating>
-
-              <Form.Floating className="mb-3">
-                <Form.Control
-                  id="floatingName"
-                  type="text"
-                  value={initialLPName}
-                  placeholder="Name"
-                  className="UpdateLPDetails-input-text-box"
-                  readOnly
-                />
-                <label htmlFor="floatingName">Name</label>
-              </Form.Floating>
-
-              <Form.Floating className="mb-3">
-                <Form.Control
-                  id="floatingPhoneNumber"
-                  type="tel"
-                  value={initialPhoneNumber}
-                  placeholder="Phone Number"
-                  className="UpdateLPDetails-input-text-box"
-                  readOnly
-                />
-                <label htmlFor="floatingPhoneNumber">Phone Number</label>
-              </Form.Floating>
-
-              <Form.Floating className="mb-3">
-                <Form.Control
-                  id="floatingEmail"
-                  type="email"
-                  value={initialEmail}
-                  placeholder="Email Address"
-                  className="UpdateLPDetails-input-text-box"
-                  readOnly
-                />
-                <label htmlFor="floatingEmail">Email Address</label>
-              </Form.Floating>
+            <div className="UpdateLPDetails-table-container" style={{ overflowY: 'scroll', height: '75vh' }}>
+              <table className="table table-striped">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone Number</th>
+                    <th>Email Address</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allPilotDetails.map((pilot, index) => (
+                    <tr key={index}>
+                      <td>{pilot.locomotivePilotID}</td>
+                      <td>{pilot.locomotiveName}</td>
+                      <td>{pilot.locomotivePhoneNo}</td>
+                      <td>{pilot.locomotiveEmail}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       </div>
 
-      {/* // Inside your JSX return statement in UpdateLPDetails component */}
-
-<Modal show={showModal} onHide={() => setShowModal(false)} centered>
-  <Modal.Header closeButton>
-    <Modal.Title>{modalType === 'success' ? 'Success' : 'Error'}</Modal.Title>
-  </Modal.Header>
-  <Modal.Body id={modalType === 'success' ? 'modal-success' : 'modal-error'} className={`modal-${modalType}`}>
-    {modalMessage}
-  </Modal.Body>
-  <Modal.Footer>
-    <Button className={`UpdateLPDetails-close-button-${modalType}`} variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
-  </Modal.Footer>
-</Modal>
+      {/* Modal */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{modalType === 'success' ? 'Success' : 'Error'}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body id={modalType === 'success' ? 'modal-success' : 'modal-error'} className={`modal-${modalType}`}>
+          {modalMessage}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button className={`UpdateLPDetails-close-button-${modalType}`} variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
+        </Modal.Footer>
+      </Modal>
 
     </>
   );
