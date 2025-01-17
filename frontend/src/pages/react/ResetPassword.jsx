@@ -6,7 +6,7 @@ import Button from 'react-bootstrap/Button';
 import { useNavigate } from 'react-router-dom';
 import { MdLockReset } from "react-icons/md";
 import axios from 'axios';
-import { Modal } from 'react-bootstrap'; // Import Modal
+import { Modal, } from 'react-bootstrap'; // Import Modal
 
 function ResetPassword() {
   const navigate = useNavigate();
@@ -41,6 +41,7 @@ function ResetPassword() {
       setLoading(false);
     }
   };
+  
 
   // Function to verify email and send OTP
   const handleEmailVerification = async () => {
@@ -282,7 +283,7 @@ function ResetPassword() {
             <p onClick={() => navigate('/')}>Back to login?</p>
           </div>
 
-          {/* Modal for password reset confirmation */}
+          {/* Modal for password reset confirmation 2*/}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Password Reset Successful</Modal.Title>
