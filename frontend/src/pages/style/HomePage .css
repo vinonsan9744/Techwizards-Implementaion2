@@ -636,34 +636,55 @@ height: 60%;
   justify-content: center;
   align-items: center;
   position: fixed;
-  bottom: 20px;
+  top: 25%; 
+  right: 32%;
   width: 100%;
   z-index: 1000;
+  pointer-events: none; 
+  transform: translateY(-50%);
+  pointer-events: none;  /* Prevents clicks on container */
 }
-
-.animated-arrow {
+.animated-left-arrow, .animated-right-arrow {
+  pointer-events: auto;  /* Enable pointer events for the arrows */
+  cursor: pointer;  /* Ensure the cursor pointer is visible */
+}
+.animated-left-arrow {
   width: 30px;
   height: 30px;
-  border-left: 5px solid #007bff;
-  border-bottom: 5px solid #007bff;
+  margin-left: 1%;
+  border-left: 5px solid #e4f2e7;
+  border-top: 5px solid #e4f2e7;
   transform: rotate(-45deg);
-  animation: bounceArrow 2s infinite ease-in-out, fadeInOut 5s forwards;
+  animation: slideArrowLeft 5s infinite ease-in-out, fadeInOutLeft 10s forwards;
   cursor: pointer;
 }
 
-@keyframes bounceArrow {
+.animated-right-arrow {
+  width: 30px;
+  height: 30px;
+  margin-left: 20%;
+  border-left: 5px solid #e4f2e7;
+  border-top: 5px solid #e4f2e7;
+  transform: rotate(135deg);
+  animation: slideArrowRight 5s infinite ease-in-out, fadeInOutRight 10s forwards;
+  
+}
+
+
+/* Keyframes for Left Arrow Animation */
+@keyframes slideArrowLeft {
   0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0) rotate(-45deg);
+    transform: translateX(0) rotate(-45deg);
   }
   40% {
-    transform: translateY(-10px) rotate(-45deg);
+    transform: translateX(-10px) rotate(-45deg);
   }
   60% {
-    transform: translateY(-5px) rotate(-45deg);
+    transform: translateX(-5px) rotate(-45deg);
   }
 }
 
-@keyframes fadeInOut {
+@keyframes fadeInOutLeft {
   0% {
     opacity: 0;
   }
@@ -675,5 +696,28 @@ height: 60%;
   }
 }
 
+/* Keyframes for Right Arrow Animation loosu velai enna karumam da ithu */
+@keyframes slideArrowRight {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateX(0) rotate(135deg);
+  }
+  40% {
+    transform: translateX(10px) rotate(135deg);
+  }
+  60% {
+    transform: translateX(5px) rotate(135deg);
+  }
+}
 
+@keyframes fadeInOutRight {
+  0% {
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
 

@@ -474,7 +474,8 @@ const getHazardArea = (hazardType) => {
                     {/* Animated Arrow */}
         {showArrow && (
           <div className="animated-arrow-container">
-            <div className="animated-arrow"></div>
+            <div className="animated-left-arrow"></div>
+            <div className="animated-right-arrow"></div>
           </div>
         )}
                           {/* Popup for location change */}

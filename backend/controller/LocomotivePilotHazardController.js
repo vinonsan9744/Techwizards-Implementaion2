@@ -24,7 +24,7 @@ export const addHazard = async (req, res) => {
       // Create the hazard
       const newHazard = await LocomotivePilotHazardModel.create({
         locomotivePilotID,
-        locationName,
+        locationId: location.locationId,
         HazardType,
         Date,
         description,
@@ -73,72 +73,73 @@ export const countHazards = async (req, res) => {
 
 // Get all hazards with associated details
 export const getAllHazards = async (req, res) => {
-    try {
-      const hazards = await LocomotivePilotHazardModel.findAll({
-        include: [
-          {
-            model: LocomotivePilotModel,
-            as: "pilot",
-            attributes: ["locomotiveName", "locomotivePhoneNo"],
-          },
-          {
-            model: LocationModel,
-            as: "location",
-            attributes: ["locationName", "locationContactNumber"],
-          },
-        ],
-      });
-  
-      return res.status(200).json({ success: true, hazards });
-    } catch (error) {
-      console.error("Error fetching hazards:", error);
-      return res.status(500).json({
-        error: "Internal server error",
-        details: error.message || error,
-      });
-    }
-  };
-  
+  try {
+    const hazards = await LocomotivePilotHazardModel.findAll({
+      include: [
+        {
+          model: LocomotivePilotModel,
+          as: "pilot",  // This matches the alias defined in the association
+          attributes: ["locomotiveName", "locomotivePhoneNo"],
+        },
+        {
+          model: LocationModel,
+          as: "location", // This must match the alias defined in the association
+          attributes: ["locationName", "locationContactNumber"],
+        },
+      ],
+    });
+
+    return res.status(200).json({ success: true, hazards });
+  } catch (error) {
+    console.error("Error fetching hazards:", error);
+    return res.status(500).json({
+      error: "Internal server error",
+      details: error.message || error,
+    });
+  }
+};
+
+
 
 // Get a hazard by ID
 export const getHazardById = async (req, res) => {
-    const { HazardID } = req.params;
-  
-    try {
-      if (!HazardID) {
-        return res.status(400).json({ error: "Hazard ID is required." });
-      }
-  
-      const hazard = await LocomotivePilotHazardModel.findOne({
-        where: { HazardID },
-        include: [
-          {
-            model: LocomotivePilotModel,
-            as: "pilot",
-            attributes: ["locomotiveName", "locomotivePhoneNo"],
-          },
-          {
-            model: LocationModel,
-            as: "location",
-            attributes: ["locationName", "locationContactNumber"],
-          },
-        ],
-      });
-  
-      if (!hazard) {
-        return res.status(404).json({ error: "Hazard not found." });
-      }
-  
-      return res.status(200).json({ success: true, hazard });
-    } catch (error) {
-      console.error("Error fetching hazard:", error);
-      return res.status(500).json({
-        error: "Internal server error",
-        details: error.message || error,
-      });
+  const { HazardID } = req.params;
+
+  try {
+    if (!HazardID) {
+      return res.status(400).json({ error: "Hazard ID is required." });
     }
-  };
-  
+
+    const hazard = await LocomotivePilotHazardModel.findOne({
+      where: { HazardID },
+      include: [
+        {
+          model: LocomotivePilotModel,
+          as: "pilot",  // This matches the alias defined in the association
+          attributes: ["locomotiveName", "locomotivePhoneNo"],
+        },
+        {
+          model: LocationModel,
+          as: "location", // This must match the alias defined in the association
+          attributes: ["locationName", "locationContactNumber"],
+        },
+      ],
+    });
+
+    if (!hazard) {
+      return res.status(404).json({ error: "Hazard not found." });
+    }
+
+    return res.status(200).json({ success: true, hazard });
+  } catch (error) {
+    console.error("Error fetching hazard:", error);
+    return res.status(500).json({
+      error: "Internal server error",
+      details: error.message || error,
+    });
+  }
+};
+
   // Delete a hazard by ID
 export const deleteHazardById = async (req, res) => {
   const { HazardID } = req.params;
