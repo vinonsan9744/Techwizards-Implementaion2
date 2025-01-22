@@ -3,13 +3,14 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import "./../style/HomePage .css";
-import { FaCloudRain } from "react-icons/fa6";
 import { FaWind } from "react-icons/fa";
 import { IoIosCloudyNight } from "react-icons/io";
+import { FaCloudRain, FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { BsFillCloudFog2Fill } from "react-icons/bs";
 import { TbLayoutSidebarLeftExpandFilled } from "react-icons/tb";
 import { FaRoute } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Modal, Button } from "react-bootstrap";
 import axios from "axios";
 
 const HomePage = (props) => {
@@ -35,7 +36,35 @@ const HomePage = (props) => {
   const [NextHazardIndex, setNextHazardIndex] = useState(0);
   const currentHazard = hazards[currentHazardIndex];
   const nextHazard = nexthazards[NextHazardIndex];
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [showArrow, setShowArrow] = useState(false);
+
   // const [locationRoute,setLocationRoute]=useState('Location Route');
+
+
+  useEffect(() => {
+    // Show popup every 10 minutes
+    const interval = setInterval(() => {
+      setIsPopupVisible(true);
+    }, 60000); // 10 minutes in milliseconds
+
+    setTimer(interval);
+
+    return () => clearInterval(interval); // Cleanup interval on component unmount
+  }, []);
+
+  const handlePopupClose = () => {
+    setIsPopupVisible(false);
+  };
+
+  const handleLocationChange = (e) => {
+    setNextLocation(e.target.value);
+  };
+
+  const handleSubmit = () => {
+    console.log("Next location set to:", nextLocation);
+    setIsPopupVisible(false);
+  };
 
   // Helper function for visibility status
   const getVisibilityStatus = (visibilityKm) => {
@@ -50,9 +79,9 @@ const HomePage = (props) => {
 
   const WindHazard = (wind_speed) => {
     if (wind_speed > 30) {
-      return "High winds may cause fallen trees on tracks";
+      return "Warning! High winds detected.";
     } else {
-      return "No Hazard";
+      return "No wind hazards detected !";
     }
   };
 
@@ -218,6 +247,7 @@ const HomePage = (props) => {
     }
   }, [hazards]); // Re-run effect when hazards array changes
 
+
   useEffect(() => {
     // Display each hazard in a loop with a 2-second interval if hazards are available
     if (nexthazards.length > 0) {
@@ -229,17 +259,25 @@ const HomePage = (props) => {
     }
   }, [nexthazards]); // Re-run effect when hazards array changes
 
-  // Function to determine the hazard area based on hazard type
-  const getHazardArea = (hazardType) => {
-    switch (hazardType.toLowerCase()) {
-      case "bull":
-        return "Bull Zone Alert! Stay Alert!";
-      case "elephant":
-        return "Elephant Zone Alert! Stay Alert!";
-      default:
-        return "Unknown Area";
-    }
-  };
+
+  
+// Function to determine the hazard area based on hazard type
+const getHazardArea = (hazardType) => {
+  if (!hazardType || typeof hazardType !== "string") {
+    return "Unknown Area"; // Handle undefined, null, or non-string values
+  }
+  switch (hazardType.toLowerCase()) {
+    case "bull":
+      return "Bull Zone Alert! Stay Alert!";
+    case "elephant":
+      return "Elephant Zone Alert! Stay Alert!";
+    case "landslide":
+      return "Landslide Zone Alert! Stay Alert!";
+    default:
+      return "Unknown Area";
+  }
+};
+  
 
   // Function to determine the hazard area based on hazard type
   const getNextHazardArea = (hazardType) => {
@@ -338,6 +376,14 @@ const HomePage = (props) => {
       }
     };
   }, [isObstacleDetected, timer]); // Re-run the effect when either the obstacle status or timer changes
+ 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowArrow((prev) => !prev); // Toggle arrow visibility
+    }, 5000); // Toggle every 5 seconds
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, []);
 
   return (
     <>
@@ -398,11 +444,13 @@ const HomePage = (props) => {
                               chance of rain {weatherLocation1.chance_of_rain}%
                             </h6>
                           </div>
+                         
                           <div className="HomePage-left-top-side-content-weather2-box container-flex">
                             <div className="row">
                               <div className="HomePage-left-top-side-content-temperature-box container-flex">
                                 <h6>{weatherLocation1.temperature}°C</h6>
                               </div>
+                              
                               <div className="HomePage-left-top-side-content-rain-box container-flex">
                                 <div className="row">
                                   <div className="HomePage-left-top-side-content-rain-icon-box container-flex">
@@ -417,11 +465,44 @@ const HomePage = (props) => {
                               </div>
                             </div>
                           </div>
+                             
                         </div>
+                        
+                        
                       )
                     )}
+                    {/* Animated Arrow */}
+        {showArrow && (
+          <div className="animated-arrow-container">
+            <div className="animated-arrow"></div>
+          </div>
+        )}
+                          {/* Popup for location change */}
+      <Modal show={isPopupVisible} onHide={handlePopupClose} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Change Next Location</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <input
+            type="text"
+            placeholder="Enter next location"
+            value={nextLocation}
+            onChange={handleLocationChange}
+            className="form-control"
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handlePopupClose}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSubmit}>
+            Set Location
+          </Button>
+        </Modal.Footer>
+      </Modal>
                   </div>
                 </div>
+               
               </div>
               <div className="HomePage-left-middle-box container-flex">
                 <div className="row">
@@ -466,7 +547,14 @@ const HomePage = (props) => {
               <div className="HomePage-left-bottom-box container-flex">
                 <div className="row">
                   <div className="HomePage-left-bottom-output1-box container-flex">
-                    <h1>vino</h1>
+                  <div>
+      {hazards.length > 0 ? (
+        <p>{getHazardArea(hazards[currentHazardIndex]?.HazardType)}</p>
+      ) : (
+        <p>No hazards found for this location</p>
+      )}
+    </div>
+
                   </div>
 
                   <div className="HomePage-left-bottom-output1-box container-flex">
@@ -602,7 +690,7 @@ const HomePage = (props) => {
                       ) : error ? (
                         <p>{error}</p>
                       ) : nexthazards.length === 0 ? (
-                        <p>No hazards found for this location.Sumaiya</p>
+                        <p>No hazards found for this location</p>
                       ) : (
                         <div>
                           {/* Simple line output for hazard area */}
@@ -612,7 +700,7 @@ const HomePage = (props) => {
                     </div>
                   </div>
                   <div className="HomePage-left-bottom-output1-box container-flex">
-                    <h1>{weatherLocation2.WindBasedHazard2}</h1>
+                    <p>{weatherLocation2.WindBasedHazard2}</p>
                   </div>
                 </div>
               </div>
