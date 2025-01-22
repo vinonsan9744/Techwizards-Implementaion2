@@ -33,22 +33,25 @@ const connection = async () => {
       sequelize
     );
 
-// Define associations after models are initialized
-LocomotivePilotModel.hasMany(LocomotivePilotHazardModel, {
-  foreignKey: "locomotivePilotID", // Matches the reference in LocomotivePilotHazardModel
-});
-LocomotivePilotHazardModel.belongsTo(LocomotivePilotModel, {
-  foreignKey: "locomotivePilotID", // Matches the foreignKey in LocomotivePilotHazardModel
-});
-
-// Correct association with LocationModel using locationId
-LocationModel.hasMany(LocomotivePilotHazardModel, {
-  foreignKey: "locationId", // Matches the reference in LocomotivePilotHazardModel
-});
-LocomotivePilotHazardModel.belongsTo(LocationModel, {
-  foreignKey: "locationId", // Matches the foreignKey in LocomotivePilotHazardModel
-});
-
+    LocomotivePilotModel.hasMany(LocomotivePilotHazardModel, {
+      foreignKey: 'locomotivePilotID',
+      as: 'pilot',  // Set an alias here
+    });
+    LocomotivePilotHazardModel.belongsTo(LocomotivePilotModel, {
+      foreignKey: 'locomotivePilotID',
+      as: 'pilot',  // Use the same alias here
+    });
+    
+    LocationModel.hasMany(LocomotivePilotHazardModel, {
+      foreignKey: 'locationId',
+      as: 'location', // Use the alias 'location' here
+    });
+    
+    LocomotivePilotHazardModel.belongsTo(LocationModel, {
+      foreignKey: 'locationId',
+      as: 'location', // Use the same alias here
+    });
+    
     // Sync all models with the database
     await sequelize.sync({ force: false }); // Use `{ force: true }` if you need to drop and recreate tables
     console.log("Database synced successfully.");
@@ -57,7 +60,7 @@ LocomotivePilotHazardModel.belongsTo(LocationModel, {
   }
 };
 
-// Export initialized models and connection function
+// Export initialized models and connection function1
 export {
   connection,
   LocationModel,
