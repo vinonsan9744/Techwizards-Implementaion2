@@ -53,7 +53,7 @@ function AdminHomePage() {
               <p>The administrative officer can update hazards here, which
               locomotive pilot fails to report.</p>
             </Card.Text>
-              <Button variant="dark" className="AdminHomePage-inserted-card-box-button"onClick={() => navigate('/hazardupdate')}>View Hazard Location</Button>
+              <Button variant="dark" className="AdminHomePage-inserted-card-box-button"onClick={() => navigate('/adminviewhazardlocation')}>View Hazard Location</Button>
            </Card.Body>
           </Card>
         </div>
