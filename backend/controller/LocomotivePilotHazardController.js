@@ -78,18 +78,34 @@ export const getAllHazards = async (req, res) => {
       include: [
         {
           model: LocomotivePilotModel,
-          as: "pilot",  // This matches the alias defined in the association
+          as: "pilot", // Matches the alias defined in the association
           attributes: ["locomotiveName", "locomotivePhoneNo"],
         },
         {
           model: LocationModel,
-          as: "location", // This must match the alias defined in the association
+          as: "location", // Matches the alias defined in the association
           attributes: ["locationName", "locationContactNumber"],
         },
       ],
     });
 
-    return res.status(200).json({ success: true, hazards });
+    // Map results to format the output
+    const formattedHazards = hazards.map((hazard) => ({
+      HazardID: hazard.HazardID,
+      locomotivePilotID: hazard.locomotivePilotID,
+      locationId: hazard.locationId,
+      HazardType: hazard.HazardType,
+      Date: hazard.Date,
+      description: hazard.description,
+      createdAt: hazard.createdAt,
+      updatedAt: hazard.updatedAt,
+      locomotiveName: hazard.pilot?.locomotiveName || null,
+      locomotivePhoneNo: hazard.pilot?.locomotivePhoneNo || null,
+      locationName: hazard.location?.locationName || null,
+      locationContactNumber: hazard.location?.locationContactNumber || null,
+    }));
+
+    return res.status(200).json({ success: true, hazards: formattedHazards });
   } catch (error) {
     console.error("Error fetching hazards:", error);
     return res.status(500).json({
@@ -98,8 +114,6 @@ export const getAllHazards = async (req, res) => {
     });
   }
 };
-
-
 
 // Get a hazard by ID
 export const getHazardById = async (req, res) => {
@@ -115,12 +129,12 @@ export const getHazardById = async (req, res) => {
       include: [
         {
           model: LocomotivePilotModel,
-          as: "pilot",  // This matches the alias defined in the association
+          as: "pilot", // Matches the alias defined in the association
           attributes: ["locomotiveName", "locomotivePhoneNo"],
         },
         {
           model: LocationModel,
-          as: "location", // This must match the alias defined in the association
+          as: "location", // Matches the alias defined in the association
           attributes: ["locationName", "locationContactNumber"],
         },
       ],
@@ -130,7 +144,23 @@ export const getHazardById = async (req, res) => {
       return res.status(404).json({ error: "Hazard not found." });
     }
 
-    return res.status(200).json({ success: true, hazard });
+    // Format the result to match the desired output
+    const formattedHazard = {
+      HazardID: hazard.HazardID,
+      locomotivePilotID: hazard.locomotivePilotID,
+      locationId: hazard.locationId,
+      HazardType: hazard.HazardType,
+      Date: hazard.Date,
+      description: hazard.description,
+      createdAt: hazard.createdAt,
+      updatedAt: hazard.updatedAt,
+      locomotiveName: hazard.pilot?.locomotiveName || null,
+      locomotivePhoneNo: hazard.pilot?.locomotivePhoneNo || null,
+      locationName: hazard.location?.locationName || null,
+      locationContactNumber: hazard.location?.locationContactNumber || null,
+    };
+
+    return res.status(200).json({ success: true, hazard: formattedHazard });
   } catch (error) {
     console.error("Error fetching hazard:", error);
     return res.status(500).json({
@@ -139,6 +169,7 @@ export const getHazardById = async (req, res) => {
     });
   }
 };
+
 
   // Delete a hazard by ID
 export const deleteHazardById = async (req, res) => {

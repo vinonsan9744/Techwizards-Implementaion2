@@ -18,7 +18,7 @@ print("Model path:", model_path)
 model = YOLO(model_path)
 
 # Load video
-cap = cv2.VideoCapture(video_path)
+cap = cv2.VideoCapture(1)
 
 
 if not cap.isOpened():
