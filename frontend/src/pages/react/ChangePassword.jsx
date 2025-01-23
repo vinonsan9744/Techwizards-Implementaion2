@@ -104,7 +104,7 @@ function ChangePassword() {
                         </p>
                     </div>
 
-                    {/* User ID Field (Pre-populated from URL) */}
+                    {/* User ID Field */}
                     <Form.Floating className="mt-4 mb-3">
                         <Form.Control
                             id="floatingUserId"
@@ -112,10 +112,11 @@ function ChangePassword() {
                             placeholder="User ID"
                             value={userId}
                             onChange={(e) => setUserId(e.target.value)}
-                            disabled
+                            disabled={false} // Allow editing if needed
                         />
                         <label htmlFor="floatingUserId">User ID</label>
                     </Form.Floating>
+
 
                     {/* New Password Field */}
                     <Form.Floating className="mt-4 mb-3">

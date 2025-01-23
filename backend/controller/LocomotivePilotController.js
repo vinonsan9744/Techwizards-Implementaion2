@@ -16,20 +16,17 @@ const createTransporter = () => {
         },
     });
 };
-
-// Function to send a welcome email
+// Send the welcome email with password and locomotivePilotID
 const sendWelcomeEmail = async (locomotiveName, locomotiveEmail, locomotivePilotID, password) => {
     const transporter = createTransporter();
     const encodedEmail = encodeURIComponent(locomotiveEmail); // Encoding the email to prevent issues with special characters
-    const passwordResetLink = `http://localhost:5173/changepassword?email=${encodedEmail}`; // Link to your ChangePassword page
+    const passwordResetLink = `http://localhost:5173/changepassword?email=${encodedEmail}}`; // Link to your ChangePassword page
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: locomotiveEmail,
         subject: 'Welcome to Railway Safety System - Your Credentials',
-
-        text: `Dear ${locomotiveName},\n\nYour account has been created successfully!\nHere are your login credentials:\n\nEmail: ${locomotiveEmail}\nPassword: ${password}\n\nFor security reasons, please change your password after logging in.\n\nIf you want To change your password, click the following link: ${passwordResetLink}\n\nBest regards,\nRailway Safety System Team`,
-
+        text: `Dear ${locomotiveName},\nYour account has been created successfully!\n\nHere are your login credentials:\n\nEmail: ${locomotiveEmail}\nPassword: ${password}\nLocomotive Pilot ID: ${locomotivePilotID}\n\nFor security reasons, please change your password after logging in.\n\nTo change your password, click the following link: ${passwordResetLink}\n\nBest regards,\nRailway Safety System Team.`,
     };
 
     try {
@@ -40,7 +37,6 @@ const sendWelcomeEmail = async (locomotiveName, locomotiveEmail, locomotivePilot
         throw new Error('Failed to send email');
     }
 };
-
 
 // Function to generate a random OTP
 const generateOtp = () => {
@@ -146,8 +142,6 @@ export const getAllLocomotivePilots = async (req, res) => {
     }
 };
 
-// Add a locomotive pilot
-// Add a locomotive pilot
 export const addLocomotivePilot = async (req, res) => {
     const { locomotiveName, locomotiveEmail, locomotivePhoneNo, password } = req.body;
 
@@ -158,7 +152,7 @@ export const addLocomotivePilot = async (req, res) => {
             const passwordToUse = password || generateRandomPassword();
             const hashedPassword = await bcrypt.hash(passwordToUse, 10);
 
-            // Create the new locomotive pilot
+            // Create the new locomotive pilot without manually adding the ID
             const newPilot = await LocomotivePilotModel.create({
                 locomotiveName,
                 locomotiveEmail,
@@ -166,8 +160,11 @@ export const addLocomotivePilot = async (req, res) => {
                 password: hashedPassword, // Store hashed password
             });
 
-            // Send the welcome email
-            await sendWelcomeEmail(locomotiveName, locomotiveEmail, passwordToUse);
+            // Ensure the ID is correctly returned and accessible
+            const locomotivePilotID = newPilot.locomotivePilotID;
+
+            // Send the welcome email with the generated password and pilot ID
+            await sendWelcomeEmail(locomotiveName, locomotiveEmail, locomotivePilotID, passwordToUse);
 
             return res.status(201).json({ message: "Locomotive pilot added successfully", newPilot });
         }
@@ -178,6 +175,8 @@ export const addLocomotivePilot = async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 };
+
+
 
 // Get locomotive pilot by ID
 export const getLocomotivePilotById = async (req, res) => {
