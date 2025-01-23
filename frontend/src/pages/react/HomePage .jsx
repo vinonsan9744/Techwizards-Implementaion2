@@ -327,7 +327,7 @@ const getHazardArea = (hazardType) => {
   useEffect(() => {
     // Establish SSE connection with the backend
     const eventSource = new EventSource(
-      "http://localhost:5000/start-detection"
+      "http://localhost:8000/start-detection"
     );
 
     // Listen for messages from the server
