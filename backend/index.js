@@ -40,7 +40,7 @@ const upload = multer({ storage: storage });
 // Route to start object detection using a Python script
 app.get("/start-detection", (req, res) => {
   const pythonScriptPath = path.join(__dirname, "model", "objectdetection.py");
-  const videoFilePath = path.join(__dirname, "videos", "cow4.mp4");
+  const videoFilePath = path.join(__dirname, "videos", "ele1.mp4");
 
   console.log(`Python Script Path: ${pythonScriptPath}`);
   console.log(`Video File Path: ${videoFilePath}`);

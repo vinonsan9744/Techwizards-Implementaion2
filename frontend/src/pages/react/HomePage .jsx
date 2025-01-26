@@ -40,6 +40,9 @@ const HomePage = (props) => {
   const [showArrow, setShowArrow] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const currentLocation = useLocation(); 
+  const [videoSource, setVideoSource] = useState(null);
+  const [isHazardDetected, setIsHazardDetected] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
 
   // const [locationRoute,setLocationRoute]=useState('Location Route');
 
@@ -326,58 +329,61 @@ const getHazardArea = (hazard) => {
     }
   }, [location]);
 
+
+
+
   useEffect(() => {
     // Establish SSE connection with the backend
-    const eventSource = new EventSource(
-      "http://localhost:5000/start-detection"
-    );
-
-    // Listen for messages from the server
+    const eventSource = new EventSource("http://localhost:8000/start-detection");
+  
+    // Handle incoming messages from the server
     eventSource.onmessage = (event) => {
-      console.log("Received from server:", event.data); // Log the data for debugging
-
+      console.log("Received from server:", event.data);
+  
       if (event.data.includes("Bull detected")) {
-        // If an obstacle (Bull) is detected
+        // Obstacle detected
         setMessage("Obstacle detected");
         setIsObstacleDetected(true);
-
+  
         // Clear any existing timer
         if (timer) {
           clearTimeout(timer);
         }
-
-        // Set a new 10-second timer to change the message to 'Route clear' after detection
+  
+        // Start a new 10-second timer
         const newTimer = setTimeout(() => {
-          setMessage("Route clear");
-          setIsObstacleDetected(false); // Reset the obstacle detection
-        }, 10000); // 10 seconds timer
-
-        setTimer(newTimer); // Store the new timer ID to reset it if another detection occurs
-      } else {
-        // If no obstacle detected, show the route clear message only if it's not currently detecting an obstacle
+          setMessage("Route clear"); // Reset to "Route clear" after 10 seconds
+          setIsObstacleDetected(false);
+        }, 10000);
+  
+        setTimer(newTimer); // Update the timer reference
+      } else if (event.data.includes("No bull detected")) {
+        // If no bull detected and not currently in obstacle state, show "Route clear"
         if (!isObstacleDetected) {
           setMessage("Route clear");
         }
       }
-
-      setLoading(false); // Stop loading once the result is received
     };
-
-    // Handle errors from SSE
+  
+    // Handle errors in the SSE connection
     eventSource.onerror = (error) => {
       console.error("Error occurred while receiving updates:", error);
       eventSource.close(); // Close the SSE connection
-      setLoading(false); // Stop loading on error
     };
-
-    // Cleanup the connection and timer when the component unmounts
+  
+    // Cleanup on component unmount
     return () => {
-      eventSource.close();
+      eventSource.close(); // Close the event source
       if (timer) {
-        clearTimeout(timer);
+        clearTimeout(timer); // Clear the timer
       }
     };
-  }, [isObstacleDetected, timer]); // Re-run the effect when either the obstacle status or timer changes
+  }, [isObstacleDetected, timer]); // Dependencies include obstacle state and timer
+
+  
+
+  
+  
  
   useEffect(() => {
     const interval = setInterval(() => {
@@ -446,6 +452,52 @@ const handleSubmit = () => {
 const handlePopupClose = () => {
   setIsPopupVisible(false);
 };
+
+
+
+useEffect(() => {
+  // Establish SSE connection to get detection updates
+  const eventSource = new EventSource('http://localhost:8000/start-detection');
+
+  eventSource.onmessage = (event) => {
+    console.log('Received from server:', event.data);
+
+    if (event.data.includes('Bull detected')) {
+      // If hazard detected, update the video source (you could use dynamic video files here)
+      setVideoSource('http://localhost:8000/public/processed_video.avi'); // Replace with your video path
+      setIsHazardDetected(true);
+    } else {
+      setIsHazardDetected(false);
+    }
+  };
+
+  // Cleanup SSE connection when component unmounts
+  return () => {
+    eventSource.close();
+  };
+}, []);
+
+
+useEffect(() => {
+  const fetchVideo = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/process-video");
+      const data = await response.json();
+      console.log("Backend response:", data); // Debug log
+
+      if (data.status === "success") {
+        setVideoUrl(data.outputVideoPath); // Set the video URL
+      } else {
+        console.error("Video processing failed:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching video:", error);
+    }
+  };
+
+  fetchVideo();
+}, []);
+
   return (
     <>
       <div className="container-flex vh-100">
@@ -688,7 +740,16 @@ const handlePopupClose = () => {
                   )}
                 </div>
 
-                <div className="HomePage-middle-main-bottom-content-box container-flex"></div>
+                <div className="HomePage-middle-main-bottom-content-box container-flex">
+                {videoUrl ? (
+        <video controls autoPlay loop style={{ width: "100%", height: "auto" }}>
+          <source src={`http://localhost:8000${videoUrl}`} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      ) : (
+        <p>Loading video...</p>
+      )}
+                </div>
               </div>
             </div>
           </div>

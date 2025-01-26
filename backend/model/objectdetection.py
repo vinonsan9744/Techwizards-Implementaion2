@@ -2,42 +2,52 @@ import cv2
 from ultralytics import YOLO
 import time
 import sys
+import os
 
-# Get the path to the video file passed as a command-line argument
+# Check if a video file path is provided as a command-line argument
 if len(sys.argv) != 2:
     print("Usage: python objectdetection.py <video_file>")
     sys.exit(1)
 
+# Get the video file path
 video_path = sys.argv[1]
 
-# Set the correct model path relative to the current working directory
-model_path = 'model/best7.pt'  # Ensure this is correct
+# Verify that the video file exists
+if not os.path.exists(video_path):
+    print(f"Error: Video file '{video_path}' does not exist.")
+    sys.exit(1)
+
+# Set the correct model path
+model_path = 'model/best7.pt'
 print("Model path:", model_path)
 
-# Load YOLOv8 model
+# Load the YOLOv8 model
 model = YOLO(model_path)
 
-# Load video
-cap = cv2.VideoCapture(1)
+# Load the video file
+cap = cv2.VideoCapture(video_path)
 
-# Check if video opened successfully
+# Check if the video file was opened successfully
 if not cap.isOpened():
-    print("Error: Could not open video.")
+    print(f"Error: Could not open video file '{video_path}'.")
     sys.exit(1)
 
 bull_detected = False
 start_time = time.time()
 
-# Process video frame by frame
+# Process the video frame by frame
 while True:
     ret, frame = cap.read()
+
+    # Break the loop if no more frames are available
     if not ret:
+        print("End of video or unable to read frame.")
         break
 
-    # Detect and track objects
-    results = model(frame)  # You can switch to model.track() if you want to use tracking
+    # Detect objects using the YOLO model
+    results = model.predict(frame[..., ::-1])  # Convert BGR to RGB for YOLO
 
-    # Loop over the detected boxes
+    # Loop over the detected objects
     for result in results:
         for obj in result.boxes:
             class_index = int(obj.cls.item())  # Convert tensor to integer
@@ -47,16 +57,20 @@ while True:
         if bull_detected:
             break
 
-    # Check if 3 seconds have passed, then print detection result
-    if time.time() - start_time >= 1:
+    # Check if 1 second has passed and print detection results
+    if int(time.time() - start_time) >= 1:
         if bull_detected:
             print("Bull detected")
         else:
             print("No bull detected")
-
-        # Reset the detection status and start the next 3-second interval
         bull_detected = False
         start_time = time.time()  # Reset the timer for the next interval
 
+    # Display the video frame with detections (Optional)
+    cv2.imshow("Video", frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to quit early
+        break
+
+# Release video resources and close windows
 cap.release()
 cv2.destroyAllWindows()
