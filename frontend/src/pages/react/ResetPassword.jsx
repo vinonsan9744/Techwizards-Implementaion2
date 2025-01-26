@@ -24,6 +24,17 @@ function ResetPassword() {
   const [showModal, setShowModal] = useState(false); // Modal state
   const [messageStyle, setMessageStyle] = useState(""); // Initialize style
 
+  // Function to validate password format
+  function isValidPassword(value) {
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()])[A-Za-z\d!@#$%^&*()]{8,}$/;
+    if (!passwordRegex.test(value)) {
+        throw new Error(
+            'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*()).'
+        );
+    }
+}
+
+
   // Function to handle username verification
   const handleUsernameVerification = async () => {
     // Check if the username is empty
@@ -155,6 +166,14 @@ function ResetPassword() {
       setMessageStyle("error"); // Set style to error
       return;
     }
+    try {
+      isValidPassword(newPassword);
+  } catch (error) {
+      setMessageStyle('error');
+      setMessage(error.message);
+      return;
+  }
+
     setMessage("");
     setMessageStyle("");
     // Ensure pilotId exists before making the request

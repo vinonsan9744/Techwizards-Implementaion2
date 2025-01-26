@@ -38,12 +38,16 @@ function RegisterPage() {
     e.preventDefault();
 
   // validation for text filed 
-  if (formData.locomotiveName.trim() === "" && formData.locomotiveEmail.trim() === "" && formData.locomotivePhoneNo.trim() === "") {
+  if (
+    (formData.locomotiveName.trim() === "" && formData.locomotiveEmail.trim() === "") ||
+    (formData.locomotiveName.trim() === "" && formData.locomotivePhoneNo.trim() === "") ||
+    (formData.locomotiveEmail.trim() === "" && formData.locomotivePhoneNo.trim() === "")
+  ) {
     setError("All fields are required.");
     setShowErrorModal(true);
     return;
   } else if (formData.locomotiveName.trim() === "") {
-    setError("Locomotive pilot field is empty.");
+    setError("Locomotive Name field is empty.");
     setShowErrorModal(true);
     return;
   } else if (formData.locomotiveEmail.trim() === "") {
@@ -91,10 +95,14 @@ function RegisterPage() {
     }, 2000);
   } catch (error) {
     console.error('Registration failed:', error);
-    if (error.response && error.response.data) {
-      setError(error.response.data.error || 'Registration failed. Please try again.'); // Informative error
-    } else {
-      setError('Registration failed. Please try again.'); // Generic error
+      if (error.response && error.response.status === 409) {
+        // Handle case when the pilot already exists
+        setError("Locomotive pilot already exists");
+      } else if (error.response && error.response.data) {
+        setError(error.response.data.error || 'Registration failed. Please try again.'); // Informative error
+      } else {
+        setError('Registration failed. Please try again.'); // Generic error
+       // Generic error
     }
     setShowErrorModal(true); // Show error modal
   }

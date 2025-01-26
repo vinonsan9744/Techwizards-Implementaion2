@@ -124,6 +124,7 @@ function AdminHazardLocation() {
         formData
       );
       console.log(response.data); // Log response data to verify if the data is saved correctly
+      
       setError("");
       setSuccess(true);
 
@@ -240,7 +241,7 @@ function AdminHazardLocation() {
                     aria-label="Text input with dropdown button"
                     id="update-hazard-input"
                     name="locationName"
-                    value={selectedLocationName || formData.locationName}
+                    value={selectedLocationName || formData.LocationName}
                     placeholder="Leave a comment here"
                     style={{ height: "5px" }}
                     onChange={handleChange} // Update state on input change

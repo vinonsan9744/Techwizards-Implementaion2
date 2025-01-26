@@ -36,9 +36,9 @@ export const createHazardModel = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        Description: {
-            type: DataTypes.TEXT,
-        },
+        // Description: {
+        //     type: DataTypes.TEXT,
+        // },
     }, {
         hooks: {
             beforeCreate: async (hazard) => {
