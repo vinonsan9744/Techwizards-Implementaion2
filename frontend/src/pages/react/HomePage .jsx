@@ -18,7 +18,7 @@ const HomePage = (props) => {
   const [isContentVisible, setIsContentVisible] = useState(true);
   const [isGreen, setIsGreen] = useState(false);
   const [time, setTime] = useState(new Date()); // State to hold current time
-  const [location, setLocation] = useState("loading");
+  const [location, setLocation] = useState(""); // Start with an empty string (or use "unknown" or another value)
   const valuelocation = useLocation();
   const [hazards, setHazards] = useState([]);
   const [nexthazards, setNextHazards] = useState([]);
@@ -38,6 +38,8 @@ const HomePage = (props) => {
   const nextHazard = nexthazards[NextHazardIndex];
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [showArrow, setShowArrow] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const currentLocation = useLocation(); 
 
   // const [locationRoute,setLocationRoute]=useState('Location Route');
 
@@ -53,18 +55,13 @@ const HomePage = (props) => {
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, []);
 
-  const handlePopupClose = () => {
-    setIsPopupVisible(false);
-  };
+
 
   const handleLocationChange = (e) => {
     setNextLocation(e.target.value);
   };
 
-  const handleSubmit = () => {
-    console.log("Next location set to:", nextLocation);
-    setIsPopupVisible(false);
-  };
+
 
   // Helper function for visibility status
   const getVisibilityStatus = (visibilityKm) => {
@@ -166,13 +163,17 @@ const HomePage = (props) => {
   };
 
   useEffect(() => {
-    const startLocation =
-      valuelocation.state?.startLocation || "unknown location";
-    setLocation(startLocation);
+    const startLocation = valuelocation.state?.startLocation || "unknown location";
+    
+    // Check if location is not set already
+    if (location === "loading") {
+      setLocation(startLocation); // Only set it if it's still "loading"
+    }
+  
     console.log("Starting location set:", startLocation);
-
     fetchWeatherData(startLocation, nextLocation);
-  }, [valuelocation.state, nextLocation]);
+  }, [valuelocation.state, nextLocation, location]);
+  
 
   // Format the time and date
   const formattedDate = time.toLocaleDateString("en-GB", {
@@ -195,20 +196,19 @@ const HomePage = (props) => {
         );
         if (response.data && Array.isArray(response.data)) {
           setHazards(response.data);
-          setError(null); // Clear previous errors
+          setError(null);
         } else {
           setHazards([]);
-          setError("Received data is not in the expected format.");
+          setError("Hazards data is empty or not in expected format.");
         }
       } catch (error) {
-        setHazards([]); // Clear hazards on error
+        setHazards([]);
         setError("Failed to load hazard data.");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchHazards();
+    
   }, [location]);
 
   useEffect(() => {
@@ -262,11 +262,12 @@ const HomePage = (props) => {
 
   
 // Function to determine the hazard area based on hazard type
-const getHazardArea = (hazardType) => {
-  if (!hazardType || typeof hazardType !== "string") {
-    return "Unknown Area"; // Handle undefined, null, or non-string values
+const getHazardArea = (hazard) => {
+  if (!hazard || !hazard.HazardType) {
+    return "Unknown Area";
   }
-  switch (hazardType.toLowerCase()) {
+  const hazardType = hazard.HazardType.toLowerCase();
+  switch (hazardType) {
     case "bull":
       return "Bull Zone Alert! Stay Alert!";
     case "elephant":
@@ -277,6 +278,7 @@ const getHazardArea = (hazardType) => {
       return "Unknown Area";
   }
 };
+
   
 
   // Function to determine the hazard area based on hazard type
@@ -327,7 +329,7 @@ const getHazardArea = (hazardType) => {
   useEffect(() => {
     // Establish SSE connection with the backend
     const eventSource = new EventSource(
-      "http://localhost:8000/start-detection"
+      "http://localhost:5000/start-detection"
     );
 
     // Listen for messages from the server
@@ -385,6 +387,65 @@ const getHazardArea = (hazardType) => {
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
+
+  useEffect(() => {
+    const savedLocation = localStorage.getItem('location'); // Retrieve location from localStorage
+    if (savedLocation) {
+      setLocation(savedLocation); // Initialize location state with the saved value
+    }
+  }, []);
+  
+
+useEffect(() => {
+  // Only set initial location if it's still "loading"
+  if (location === "loading" || location === "") {
+    const startLocation = valuelocation.state?.startLocation || "unknown location";
+    setLocation(startLocation); // Set location when it's loading or empty
+  }
+
+  // Fetch weather data when the location changes
+  console.log("Fetching weather for location:", location);
+  fetchWeatherData(location, nextLocation); // Fetch based on current location
+}, [location, nextLocation]); // Trigger effect when location changes
+
+
+ // Update location from query params or route path if required
+ useEffect(() => {
+  const queryParams = new URLSearchParams(currentLocation.search);
+  const newLocation = queryParams.get('location');
+  if (newLocation) {
+    setLocation(newLocation);
+    localStorage.setItem('location', newLocation); // Store the location in localStorage
+  }
+}, [currentLocation]); // Run when route changes
+
+
+const handleInputChange = (event) => {
+  setInputValue(event.target.value);
+};
+
+const handleSubmit = () => {
+  const newLocation = inputValue.trim();
+  if (newLocation) {
+    console.log("Valid Input. Updating Location:", newLocation);
+    
+    // Set the new location state temporarily
+    setLocation(newLocation); // This will update location for the current session
+
+    // Close the modal
+    setIsPopupVisible(false);
+
+    // You can optionally trigger a page refresh, if you need to re-render
+    // window.location.reload();  // This is not necessary if no state persistence is needed
+  } else {
+    alert("Please enter a valid location!");
+  }
+};
+
+
+const handlePopupClose = () => {
+  setIsPopupVisible(false);
+};
   return (
     <>
       <div className="container-flex vh-100">
@@ -478,29 +539,54 @@ const getHazardArea = (hazardType) => {
             <div className="animated-right-arrow"></div>
           </div>
         )}
-                          {/* Popup for location change */}
-      <Modal show={isPopupVisible} onHide={handlePopupClose} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Change Next Location</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <input
-            type="text"
-            placeholder="Enter next location"
-            value={nextLocation}
-            onChange={handleLocationChange}
-            className="form-control"
-          />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handlePopupClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSubmit}>
-            Set Location
-          </Button>
-        </Modal.Footer>
-      </Modal>
+              
+      {/* Modal Popup */}
+
+<Modal show={isPopupVisible} onHide={handlePopupClose} centered>
+  <Modal.Header closeButton>
+    <Modal.Title style={{ color: "#355e5e", fontWeight: "bold" }}>
+      Change Location
+    </Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    <input
+      type="text"
+      placeholder="Enter a new location"
+      value={inputValue} // Controlled input
+      onChange={handleInputChange} // Update input value on change
+      className="form-control"
+      style={{
+        border: "1px solid #355e5e",
+        borderRadius: "4px",
+        padding: "10px",
+      }}
+    />
+  </Modal.Body>
+  <Modal.Footer>
+    <Button
+      variant="danger"
+      onClick={handlePopupClose} // Close modal on cancel
+      style={{
+        backgroundColor: "#c82333",
+        color: "#e4f2e7",
+        border: "none",
+      }}
+    >
+      Cancel
+    </Button>
+    <Button
+      onClick={handleSubmit} // Set location on submit
+      style={{
+        backgroundColor: "#355e5e",
+        color: "#e4f2e7",
+        border: "none",
+      }}
+    >
+      Set Location
+    </Button>
+  </Modal.Footer>
+</Modal>
+
                   </div>
                 </div>
                
@@ -550,10 +636,11 @@ const getHazardArea = (hazardType) => {
                   <div className="HomePage-left-bottom-output1-box container-flex">
                   <div>
       {hazards.length > 0 ? (
-        <p>{getHazardArea(hazards[currentHazardIndex]?.HazardType)}</p>
-      ) : (
-        <p>No hazards found for this location</p>
-      )}
+  <p>{getHazardArea(hazards[currentHazardIndex]?.HazardType)}</p>
+) : (
+  <p>No hazards found for this location</p>
+)}
+
     </div>
 
                   </div>
