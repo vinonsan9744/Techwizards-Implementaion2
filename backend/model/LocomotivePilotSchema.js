@@ -33,13 +33,22 @@ export const createLocomotivePilotModel = (sequelize) => {
                 len: [9, 15], // Adjust based on your phone number requirements
             }
         },
-        password: {
-            type: DataTypes.STRING,
-            allowNull: false,  // Ensure a password is provided
-            validate: {
-                len: [8, 100] // Allowing up to 100 characters for a hashed password
+       password: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+        len: [8, 100],
+        isValidPassword(value) {
+            const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()])[A-Za-z\d!@#$%^&*()]{8,}$/;
+            if (!passwordRegex.test(value)) {
+                throw new Error(
+                    'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&*()).'
+                );
             }
         },
+    },
+},
+
         otp: {
             type: DataTypes.STRING(6), // 6-digit OTP
             allowNull: true,

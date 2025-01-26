@@ -16,12 +16,12 @@ export const getAllHazards = async (req, res) => {
 
 // POST - Add a new hazard
 export const addHazard = async (req, res) => {
-  const { HazardType, LocationName, Description } = req.body;
+  const { HazardType, LocationName } = req.body;
   try {
     const hazard = await HazardModel.create({
       HazardType,
       LocationName,
-      Description,
+      // Description,
     });
     return res
       .status(201)
@@ -31,7 +31,7 @@ export const addHazard = async (req, res) => {
       });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "The hazard alredy exit in this location." });
   }
 };
 // GET - Retrieve hazards by LocationName
